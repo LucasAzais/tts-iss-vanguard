@@ -1,0 +1,150 @@
+local ShipBook = {}
+ShipBook.__index = ShipBook
+
+local Constants = require('Constants')
+local Ui = require('Ui')
+
+------------------------------------------------------
+
+ShipBook.CHAPTERS_BAG = '71b8c3'
+ShipBook.CHAPTERS = {
+    {
+        name = 'Resuming',
+        bag = 'db91b6',
+        onPull = ShipBook.setupResuming
+    },
+    {
+        name = 'Bridge',
+        bag = '30c2cd',
+        onPull = ShipBook.setupBridge
+    },
+    {
+        name = 'Starmap',
+        bag = '69d1e2',
+        onPull = ShipBook.setupStarmap
+    },
+    {
+        name = 'Ship Facilities',
+        bag = 'b1c9d3',
+        onPull = ShipBook.setupShipFacilities
+    },
+    {
+        name = 'Research',
+        bag = 'd7b876',
+        onPull = ShipBook.setupResearch
+    },
+    {
+        name = 'Production',
+        bag = 'fbb2d8',
+        onPull = ShipBook.setupProduction
+    },
+    {
+        name = 'Barracks',
+        bag = 'df3235',
+        onPull = ShipBook.setupBarracks
+    },
+    {
+        name = 'Situation Room',
+        bag = '326323',
+        onPull = ShipBook.setupSituationRoom
+    },
+    {
+        name = 'Hangar',
+        bag = '2a8d62',
+        onPull = ShipBook.setupHangar
+    },
+    {
+        name = 'Exploration',
+        bag = 'cb471a',
+        onPull = ShipBook.setupExploration
+    },
+    {
+        name = 'Leaving',
+        bag = '345724',
+        onPull = ShipBook.setupLeaving
+    },
+    {
+        name = 'Docking',
+        bag = 'ec3a25',
+        onPull = ShipBook.setupDocking
+    },
+    {
+        name = 'Debriefing',
+        bag = '70e171',
+        onPull = ShipBook.setupDebriefing
+    },
+    {
+        name = 'Unloading',
+        bag = 'ff6615',
+        onPull = ShipBook.setupUnloading
+    },
+    {
+        name = 'Medbay',
+        bag = '502344',
+        onPull = ShipBook.setupMedbay
+    },
+    {
+        name = 'Memorial Wall',
+        bag = '1e3897',
+        onPull = ShipBook.setupMemorialWall
+    },
+    {
+        name = 'Save Point',
+        bag = '7e369a',
+        onPull = ShipBook.setupSavePoint
+    }
+}
+
+function ShipBook.init()
+    -- Initialise the UI
+    local chaptersBag = getObjectFromGUID(ShipBook.CHAPTERS_BAG)
+
+    if not chaptersBag then
+        broadcastToColor('Could not find the chapters bag with ID ' .. ShipBook.CHAPTERS_BAG, Color.Red)
+        return
+    end
+
+    assert(Ui.getRoot() ~= nil)
+
+    ShipBook.toggle_button = Ui.getRoot():button({
+        id = 'ship-book-menu-toggle', height = 40, width = 40, rectAlignment = 'UpperRight', x = -10, y = -200, onClick = function() ShipBook.expandMenu() end
+    })
+    ShipBook.toggle_button.attributes.icon = 'ExpandButton'
+    ShipBook.toggle_button.attributes.allowDragging = true
+    ShipBook.toggle_button.attributes.returnToOriginalPositionWhenReleased = false
+
+    ShipBook.menu_layout = Ui.getRoot():verticalLayout({
+        id = 'ship-book-menu-layout', height = 600, width = 130, spacing = 10, rectAlignment = 'UpperRight', x = -10, y = -250, active = false
+    })
+    ShipBook.menu_layout.attributes.showAnimation = 'SlideIn_Right'
+    ShipBook.menu_layout.attributes.hideAnimation = 'SlideOut_Right'
+
+    for index, chapter in ipairs(ShipBook.CHAPTERS) do
+        local button = ShipBook.menu_layout:button({
+            id = chapter.name .. '-button', text = chapter.name, fontSize = 20,
+            onClick = function() chapter.onPull() end
+        })
+    end
+end
+
+function ShipBook.expandMenu()
+    ShipBook.toggle_button:setIcon('CollapseButton')
+    ShipBook.toggle_button:setOnClick(function() ShipBook.collapseMenu() end)
+
+    -- Display vertical menu
+    ShipBook.menu_layout:show()
+end
+
+function ShipBook.collapseMenu()
+    ShipBook.toggle_button:setIcon('ExpandButton')
+    ShipBook.toggle_button:setOnClick(function() ShipBook.expandMenu() end)
+
+    -- Hide vertical menu
+    ShipBook.menu_layout:hide()
+end
+
+------------------------------------------------------
+
+return {
+    init = ShipBook.init
+}

@@ -1,0 +1,39 @@
+-- This project uses Benjamin-Dobell/luabundle git repo to organise this project
+
+-- Naming conventions, hopefully that's understandable
+-- Classes: PascalCase
+-- Functions: camelCase
+-- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
+-- Local vars: camelCase
+
+local Constants = require('Constants')
+local Log = require('Log')
+local ShipBook = require('ShipBook')
+local Ui = require('Ui')
+
+------------------------------------------------------
+
+local NOT_INTERACTABLE = {
+    
+}
+
+function onLoad(script_state)
+    math.randomseed(os.time())
+
+    -- Disable non-interactable objects
+    for _, objectGUID in ipairs(NOT_INTERACTABLE) do
+        getObjectFromGUID(objectGUID).interactable = false
+    end
+
+    -- Parse save data
+    local savedData = JSON.decode(script_state) or {}
+
+    Log.init()
+    Ui.init()
+    ShipBook.init()
+    Ui.globalRefresh()
+end
+
+function onSave()
+
+end

@@ -1,0 +1,64 @@
+local Log = {}
+Log.__index = Log
+
+local Constants = require('Constants')
+
+------------------------------------------------------
+
+Log.logsByModule = {}
+
+function Log.init()
+    Log.logsByModule = {}
+
+    logStyle("debug", { r = 1.0, g = 1.0, b = 1.0 }, "", "")
+    logStyle("info", { r = 0.0, g = 1.0, b = 1.0 }, "", "")
+    logStyle("error", { r = 1.0, g = 0.0, b = 0.0 }, "", "")
+end
+
+function Log.create(module, level)
+    local log = {
+        module = module,
+        level = level
+    }
+    setmetatable(log, Log)
+
+    return log
+end
+
+function Log:error(message)
+    message = message or ''
+
+    if self.level >= Constants.ERROR then
+        log('[' .. self.module .. ' - ERROR] ' .. tostring(message), nil, 'error')
+    end
+end
+
+function Log:info(message)
+    message = message or ''
+    
+    if self.level >= Constants.INFO then
+        log('[' .. self.module .. ' - INFO] ' .. tostring(message), nil, 'info')
+    end
+end
+
+function Log:debug(message)
+    message = message or ''
+
+    if self.level >= Constants.DEBUG then
+        log('[' .. self.module .. ' - DEBUG] ' .. tostring(message), nil, 'debug')
+    end
+end
+
+function Log.ForModule(module, level)
+    local log = Log.logsByModule[module]
+    if not log then
+        log = Log.create(module, level or Constants.INFO)
+        Log.logsByModule[module] = log
+    end
+    return log
+end
+
+return {
+    init = Log.init,
+    ForModule = Log.ForModule
+}

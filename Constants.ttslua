@@ -1,0 +1,13 @@
+local Constants = {}
+Constants.__index = Constants
+
+------------------------------------------------------
+
+Constants.DEBUG = 1
+Constants.INFO = 2
+Constants.WARNING = 3
+Constants.ERROR = 4
+
+------------------------------------------------------
+
+return Constants
