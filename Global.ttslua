@@ -30,7 +30,7 @@ function onLoad(script_state)
 
     Log.init()
     Ui.init()
-    ShipBook.init()
+    ShipBook.init(savedData.ship_book or {})
     Ui.globalRefresh()
 end
 

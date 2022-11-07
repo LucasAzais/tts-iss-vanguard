@@ -6,101 +6,191 @@ local Ui = require('Ui')
 
 ------------------------------------------------------
 
-ShipBook.CHAPTERS_BAG = '71b8c3'
-ShipBook.CHAPTERS = {
-    {
-        name = 'Resuming',
-        bag = 'db91b6',
-        onPull = ShipBook.setupResuming
-    },
-    {
-        name = 'Bridge',
-        bag = '30c2cd',
-        onPull = ShipBook.setupBridge
-    },
-    {
-        name = 'Starmap',
-        bag = '69d1e2',
-        onPull = ShipBook.setupStarmap
-    },
-    {
-        name = 'Ship Facilities',
-        bag = 'b1c9d3',
-        onPull = ShipBook.setupShipFacilities
-    },
-    {
-        name = 'Research',
-        bag = 'd7b876',
-        onPull = ShipBook.setupResearch
-    },
-    {
-        name = 'Production',
-        bag = 'fbb2d8',
-        onPull = ShipBook.setupProduction
-    },
-    {
-        name = 'Barracks',
-        bag = 'df3235',
-        onPull = ShipBook.setupBarracks
-    },
-    {
-        name = 'Situation Room',
-        bag = '326323',
-        onPull = ShipBook.setupSituationRoom
-    },
-    {
-        name = 'Hangar',
-        bag = '2a8d62',
-        onPull = ShipBook.setupHangar
-    },
-    {
-        name = 'Exploration',
-        bag = 'cb471a',
-        onPull = ShipBook.setupExploration
-    },
-    {
-        name = 'Leaving',
-        bag = '345724',
-        onPull = ShipBook.setupLeaving
-    },
-    {
-        name = 'Docking',
-        bag = 'ec3a25',
-        onPull = ShipBook.setupDocking
-    },
-    {
-        name = 'Debriefing',
-        bag = '70e171',
-        onPull = ShipBook.setupDebriefing
-    },
-    {
-        name = 'Unloading',
-        bag = 'ff6615',
-        onPull = ShipBook.setupUnloading
-    },
-    {
-        name = 'Medbay',
-        bag = '502344',
-        onPull = ShipBook.setupMedbay
-    },
-    {
-        name = 'Memorial Wall',
-        bag = '1e3897',
-        onPull = ShipBook.setupMemorialWall
-    },
-    {
-        name = 'Save Point',
-        bag = '7e369a',
-        onPull = ShipBook.setupSavePoint
+ShipBook.SHIPBOOK_ZONE = '9f8780'
+ShipBook.SHIPBOOK_BAG = '71b8c3'
+ShipBook.TEMPORARY_BAG_LOCATION = {-6.48, 1.30, 89.60}
+ShipBook.MAIN_BOARD_LOCATION = {-150.67, 1.30, 0}
+
+ShipBook.RESUMING = 'Resuming'
+ShipBook.BRIDGE = 'Bridge'
+ShipBook.STARMAP = 'Starmap'
+ShipBook.SHIP_FACILITIES = 'Ship Facilities'
+ShipBook.RESEARCH = 'Research'
+ShipBook.PRODUCTION = 'Production'
+ShipBook.BARRACKS = 'Barracks'
+ShipBook.SITUATION_ROOM = 'Situation Room'
+ShipBook.HANGAR = 'Hangar'
+ShipBook.EXPLORATION = 'Exploration'
+ShipBook.LEAVING = 'Leaving'
+ShipBook.DOCKING = 'Docking'
+ShipBook.DEBRIEFING = 'Debriefing'
+ShipBook.UNLOADING = 'Unloading'
+ShipBook.MEDBAY = 'Medbay'
+ShipBook.MEMORIAL_WALL = 'Memorial Wall'
+ShipBook.SAVE_POINT = 'Save Point'
+
+function ShipBook.init(savedData)
+    -- TODO: Uncomment this
+    -- Hide the chapter bag (visuals and sound)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', true)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent("AudioSource").set('mute', true)
+
+    -- Initialise the functions
+    ShipBook.CHAPTERS = {
+        [ShipBook.RESUMING] = {
+            name = ShipBook.RESUMING,
+            bag = 'db91b6',
+            mainBoard = '484158',
+            onSetup = ShipBook.setupResuming,
+            order = 1
+        },
+        [ShipBook.BRIDGE] = {
+            name = ShipBook.BRIDGE,
+            bag = '30c2cd',
+            mainBoard = '86fe9e',
+            onSetup = ShipBook.setupBridge,
+            order = 2
+        },
+        [ShipBook.STARMAP] = {
+            name = ShipBook.STARMAP,
+            bag = '69d1e2',
+            mainBoard = 'c8509a',
+            onSetup = ShipBook.setupStarmap,
+            order = 3
+        },
+        [ShipBook.SHIP_FACILITIES] = {
+            name = ShipBook.SHIP_FACILITIES,
+            bag = 'b1c9d3',
+            mainBoard = 'e14d2f',
+            onSetup = ShipBook.setupShipFacilities,
+            order = 4
+        },
+        [ShipBook.RESEARCH] = {
+            name = ShipBook.RESEARCH,
+            bag = 'd7b876',
+            mainBoard = '71da58',
+            onSetup = ShipBook.setupResearch,
+            order = 5
+        },
+        [ShipBook.PRODUCTION] = {
+            name = ShipBook.PRODUCTION,
+            bag = 'fbb2d8',
+            mainBoard = 'b07523',
+            onSetup = ShipBook.setupProduction,
+            order = 6
+        },
+        [ShipBook.BARRACKS] = {
+            name = ShipBook.BARRACKS,
+            bag = 'df3235',
+            mainBoard = '7933f1',
+            onSetup = ShipBook.setupBarracks,
+            order = 7
+        },
+        [ShipBook.SITUATION_ROOM] = {
+            name = ShipBook.SITUATION_ROOM,
+            bag = '326323',
+            mainBoard = '445b37',
+            onSetup = ShipBook.setupSituationRoom,
+            order = 8
+        },
+        [ShipBook.HANGAR] = {
+            name = ShipBook.HANGAR,
+            bag = '2a8d62',
+            mainBoard = 'd7d7b6',
+            onSetup = ShipBook.setupHangar,
+            order = 9
+        },
+        [ShipBook.EXPLORATION] = {
+            name = ShipBook.EXPLORATION,
+            bag = 'cb471a',
+            mainBoard = '45ae91',
+            onSetup = ShipBook.setupExploration,
+            order = 10
+        },
+        [ShipBook.LEAVING] = {
+            name = ShipBook.LEAVING,
+            bag = '345724',
+            mainBoard = '6878a1',
+            onSetup = ShipBook.setupLeaving,
+            order = 11
+        },
+        [ShipBook.DOCKING] = {
+            name = ShipBook.DOCKING,
+            bag = 'ec3a25',
+            mainBoard = '00db30',
+            onSetup = ShipBook.setupDocking,
+            order = 12
+        },
+        [ShipBook.DEBRIEFING] = {
+            name = ShipBook.DEBRIEFING,
+            bag = '70e171',
+            mainBoard = 'd7d589',
+            onSetup = ShipBook.setupDebriefing,
+            order = 13
+        },
+        [ShipBook.UNLOADING] = {
+            name = ShipBook.UNLOADING,
+            bag = 'ff6615',
+            mainBoard = '463cac',
+            onSetup = ShipBook.setupUnloading,
+            order = 14
+        },
+        [ShipBook.MEDBAY] = {
+            name = ShipBook.MEDBAY,
+            bag = '502344',
+            mainBoard = 'f471ff',
+            onSetup = ShipBook.setupMedbay,
+            order = 15
+        },
+        [ShipBook.MEMORIAL_WALL] = {
+            name = ShipBook.MEMORIAL_WALL,
+            bag = '1e3897',
+            mainBoard = 'dc2dfe',
+            onSetup = ShipBook.setupMemorialWall,
+            order = 16
+        },
+        [ShipBook.SAVE_POINT] = {
+            name = ShipBook.SAVE_POINT,
+            bag = '7e369a',
+            mainBoard = '739049',
+            onSetup = ShipBook.setupSavePoint,
+            order = 17
+        }
     }
-}
 
-function ShipBook.init()
+    -- Add saved data to the CHAPTERS
+    for name, chapter in pairs(ShipBook.CHAPTERS) do
+        chapter.savedPositions = savedData[name] or {}
+    end
+
+    -- Specific initial binder setup
+    if not savedData[ShipBook.BRIDGE] then
+        ShipBook.CHAPTERS[ShipBook.BRIDGE].savedPositions = {
+            { guid = 'ff1938', position = {-156.26, 1.36, 8.96}, rotation = {0.00, 180.00, 180.00}, lock = false},
+            { guid = '730497', position = {-148.28, 1.36, 8.91}, rotation = {0.00, 180.00, 180.00}, lock = false},
+            { guid = 'efb2e3', position = {-144.22, 1.36, 8.95}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = 'a66cd5', position = {-167.69, 1.34, 7.77}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '598d9c', position = {-167.69, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true},
+            { guid = 'afad6d', position = {-164.01, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true}
+        }
+    end
+
+    -- if not savedData[ShipBook.BRIDGE] then
+    --     ShipBook.CHAPTERS[ShipBook.BRIDGE].savedPositions = {
+    --         { guid = 'ff1938', position = {-156.26, 1.36, 8.96}, rotation = {0.00, 180.00, 180.00}, lock = false},
+    --         { guid = '730497', position = {-148.28, 1.36, 8.91}, rotation = {0.00, 180.00, 180.00}, lock = false},
+    --         { guid = 'efb2e3', position = {-144.22, 1.36, 8.95}, rotation = {0.00, 180.00, 0.00}, lock = false},
+    --         { guid = 'a66cd5', position = {-167.69, 1.34, 7.77}, rotation = {0.00, 180.00, 0.00}, lock = true},
+    --         { guid = '598d9c', position = {-167.69, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true},
+    --         { guid = 'afad6d', position = {-164.01, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true}
+    --     }
+    -- end
+
     -- Initialise the UI
-    local chaptersBag = getObjectFromGUID(ShipBook.CHAPTERS_BAG)
+    local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
 
-    if not chaptersBag then
-        broadcastToColor('Could not find the chapters bag with ID ' .. ShipBook.CHAPTERS_BAG, Color.Red)
+    if not shipbookBag then
+        broadcastToColor('Could not find the chapters bag with ID ' .. ShipBook.SHIPBOOK_BAG, Color.Red)
         return
     end
 
@@ -119,12 +209,26 @@ function ShipBook.init()
     ShipBook.menu_layout.attributes.showAnimation = 'SlideIn_Right'
     ShipBook.menu_layout.attributes.hideAnimation = 'SlideOut_Right'
 
-    for index, chapter in ipairs(ShipBook.CHAPTERS) do
+    -- Reorder chapters
+    local orderedChapters = {}
+    for k, v in pairs(ShipBook.CHAPTERS) do table.insert(orderedChapters, k) end
+    table.sort(orderedChapters, function(l1, l2) return ShipBook.CHAPTERS[l1].order < ShipBook.CHAPTERS[l2].order end)
+
+    for index, name in pairs(orderedChapters) do
         local button = ShipBook.menu_layout:button({
-            id = chapter.name .. '-button', text = chapter.name, fontSize = 20,
-            onClick = function() chapter.onPull() end
+            id = ShipBook.CHAPTERS[name].name .. '-button', text = ShipBook.CHAPTERS[name].name, fontSize = 20,
+            onClick = function() 
+                ShipBook.globalSetup(name)
+                ShipBook.CHAPTERS[name].onSetup() 
+            end
         })
     end
+
+    -- TODO: Remove this once the binder is done
+    Ui.getRoot():button({
+        id = 'save-state', height = 50, width = 100, rectAlignment = 'UpperLeft', x = 100, y = -10, 
+        text = 'Save', fontSize = 30, onClick = function() log(json.serialize(ShipBook.save())) end
+    })
 end
 
 function ShipBook.expandMenu()
@@ -143,8 +247,151 @@ function ShipBook.collapseMenu()
     ShipBook.menu_layout:hide()
 end
 
+function ShipBook.cleanupExistingChapter()
+    -- Put the chapter stuff into the bags
+    -- local chapterBag = getObjectsWithTag('chapterBag') and getObjectsWithTag('chapterBag')[1] or nil
+    local chapterBag = ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag)
+    if chapterBag then
+        local mainBoard = getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].mainBoard)
+
+        ShipBook.CHAPTERS[ShipBook.current_chapter].savedPositions = {}
+
+        for _, object in ipairs(getObjectFromGUID(ShipBook.SHIPBOOK_ZONE).getObjects()) do
+            -- Save the GUID and position of all objects (except the main board)
+            if object.getGUID() ~= ShipBook.CHAPTERS[ShipBook.current_chapter].mainBoard then
+                -- TODO: Save the position in relation to the main board
+                table.insert(ShipBook.CHAPTERS[ShipBook.current_chapter].savedPositions, {
+                    guid = object.getGUID(),
+                    position = object.getPosition(),
+                    rotation = object.getRotation(),
+                    lock = object.getLock()
+                })
+            end
+
+            -- Put the object away
+            object.attachInvisibleHider('hide', true)
+            chapterBag.putObject(object)
+        end
+
+        -- Then put the chapter bag into the shipbook bag
+        getObjectFromGUID(ShipBook.SHIPBOOK_BAG).putObject(chapterBag)
+    end
+end
+
+function ShipBook.globalSetup(chapter)
+    if ShipBook.current_chapter == chapter then return end
+
+    -- Hide existing bags
+    ShipBook.cleanupExistingChapter()
+
+    -- Change the chapter and get the bag
+    ShipBook.current_chapter = chapter
+
+    local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
+    local chapterBag = shipbookBag.takeObject({
+        position          = ShipBook.TEMPORARY_BAG_LOCATION,
+        callback_function = function(obj) obj.setLock(true) end,
+        smooth            = false,
+        guid              = ShipBook.CHAPTERS[chapter].bag,
+    })
+
+    chapterBag.attachInvisibleHider('hide', true)
+    chapterBag.getComponent("AudioSource").set('mute', true)
+
+    if ShipBook.CHAPTERS[chapter].mainBoard ~= '' then
+        local mainBoard = chapterBag.takeObject({
+            position          = ShipBook.MAIN_BOARD_LOCATION,
+            rotation          = {0, 180, 0},
+            callback_function = function(obj) obj.setLock(true) obj.interactable = false end,
+            smooth            = false,
+            guid              = ShipBook.CHAPTERS[chapter].mainBoard,
+        })
+
+        for _, saved in ipairs(ShipBook.CHAPTERS[chapter].savedPositions) do
+            chapterBag.takeObject({
+                position          = saved.position,
+                rotation          = saved.rotation,
+                callback_function = function(obj)
+                    obj.setLock(saved.lock)
+                end,
+                smooth            = false,
+                guid              = saved.guid,
+            })
+        end
+
+        -- Move the camera to the main board
+        -- TODO: Add custom camera distance per chapter
+        for _, player in ipairs(Player.getPlayers()) do
+            player.lookAt({ position = mainBoard.getPosition(), pitch = 90, distance = 30 })
+        end
+    end
+end
+
+function ShipBook.setupResuming()
+end
+
+function ShipBook.setupBridge()
+end
+
+function ShipBook.setupStarmap()
+end
+
+function ShipBook.setupShipFacilities()
+end
+
+function ShipBook.setupResearch()
+end
+
+function ShipBook.setupProduction()
+end
+
+function ShipBook.setupBarracks()
+end
+
+function ShipBook.setupSituationRoom()
+end
+
+function ShipBook.setupHangar()
+end
+
+function ShipBook.setupExploration()
+end
+
+function ShipBook.setupLeaving()
+end
+
+function ShipBook.setupDocking()
+end
+
+function ShipBook.setupDebriefing()
+end
+
+function ShipBook.setupUnloading()
+end
+
+function ShipBook.setupMedbay()
+end
+
+function ShipBook.setupMemorialWall()
+end
+
+function ShipBook.setupSavePoint()
+end
+
+function ShipBook.save()
+    local flatData = {}
+
+    for name, chapter in pairs(ShipBook.CHAPTERS) do
+        flatData[name] = chapter.savedPositions
+    end
+
+    -- return flatData
+    return ShipBook.CHAPTERS[ShipBook.BRIDGE].savedPositions
+end
+
 ------------------------------------------------------
 
 return {
-    init = ShipBook.init
+    init = ShipBook.init,
+    save = ShipBook.save
 }
