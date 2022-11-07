@@ -6,6 +6,11 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
+-- TODO: Make on screen UI for Command/Energy/Success/Penalty tokens
+-- TODO: Planet Scanner
+-- TODO: Available crew per section -> drawers
+-- TODO: Consider hiding the ShipBook elements while they load
+
 local Constants = require('Constants')
 local Log = require('Log')
 local ShipBook = require('ShipBook')

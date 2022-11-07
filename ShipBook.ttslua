@@ -6,9 +6,13 @@ local Ui = require('Ui')
 
 ------------------------------------------------------
 
+-- Use this to show/hide the various storage bags used for the ship book
+ShipBook.HIDE_STORAGE_BAGS = true
+
 ShipBook.SHIPBOOK_ZONE = '9f8780'
 ShipBook.SHIPBOOK_BAG = '71b8c3'
 ShipBook.TEMPORARY_BAG_LOCATION = {-6.48, 1.30, 89.60}
+-- TODO: Main board has a fixed position, is this a good idea or should it just be a default?
 ShipBook.MAIN_BOARD_LOCATION = {-150.67, 1.30, 0}
 
 ShipBook.RESUMING = 'Resuming'
@@ -30,10 +34,9 @@ ShipBook.MEMORIAL_WALL = 'Memorial Wall'
 ShipBook.SAVE_POINT = 'Save Point'
 
 function ShipBook.init(savedData)
-    -- TODO: Uncomment this
     -- Hide the chapter bag (visuals and sound)
-    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', true)
-    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent("AudioSource").set('mute', true)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent("AudioSource").set('mute', ShipBook.HIDE_STORAGE_BAGS)
 
     -- Initialise the functions
     ShipBook.CHAPTERS = {
@@ -77,7 +80,8 @@ function ShipBook.init(savedData)
             bag = 'fbb2d8',
             mainBoard = 'b07523',
             onSetup = ShipBook.setupProduction,
-            order = 6
+            order = 6,
+            cameraDistance = 32
         },
         [ShipBook.BARRACKS] = {
             name = ShipBook.BARRACKS,
@@ -133,21 +137,24 @@ function ShipBook.init(savedData)
             bag = 'ff6615',
             mainBoard = '463cac',
             onSetup = ShipBook.setupUnloading,
-            order = 14
+            order = 14,
+            cameraDistance = 38
         },
         [ShipBook.MEDBAY] = {
             name = ShipBook.MEDBAY,
             bag = '502344',
             mainBoard = 'f471ff',
             onSetup = ShipBook.setupMedbay,
-            order = 15
+            order = 15,
+            cameraDistance = 38
         },
         [ShipBook.MEMORIAL_WALL] = {
             name = ShipBook.MEMORIAL_WALL,
             bag = '1e3897',
             mainBoard = 'dc2dfe',
             onSetup = ShipBook.setupMemorialWall,
-            order = 16
+            order = 16,
+            cameraDistance = 38
         },
         [ShipBook.SAVE_POINT] = {
             name = ShipBook.SAVE_POINT,
@@ -168,23 +175,80 @@ function ShipBook.init(savedData)
         ShipBook.CHAPTERS[ShipBook.BRIDGE].savedPositions = {
             { guid = 'ff1938', position = {-156.26, 1.36, 8.96}, rotation = {0.00, 180.00, 180.00}, lock = false},
             { guid = '730497', position = {-148.28, 1.36, 8.91}, rotation = {0.00, 180.00, 180.00}, lock = false},
-            { guid = 'efb2e3', position = {-144.22, 1.36, 8.95}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = 'efb2e3', position = {-144.22, 1.36, 8.95}, rotation = {0.00, 0.00, 0.00}, lock = false},
             { guid = 'a66cd5', position = {-167.69, 1.34, 7.77}, rotation = {0.00, 180.00, 0.00}, lock = true},
             { guid = '598d9c', position = {-167.69, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true},
             { guid = 'afad6d', position = {-164.01, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true}
         }
     end
 
-    -- if not savedData[ShipBook.BRIDGE] then
-    --     ShipBook.CHAPTERS[ShipBook.BRIDGE].savedPositions = {
-    --         { guid = 'ff1938', position = {-156.26, 1.36, 8.96}, rotation = {0.00, 180.00, 180.00}, lock = false},
-    --         { guid = '730497', position = {-148.28, 1.36, 8.91}, rotation = {0.00, 180.00, 180.00}, lock = false},
-    --         { guid = 'efb2e3', position = {-144.22, 1.36, 8.95}, rotation = {0.00, 180.00, 0.00}, lock = false},
-    --         { guid = 'a66cd5', position = {-167.69, 1.34, 7.77}, rotation = {0.00, 180.00, 0.00}, lock = true},
-    --         { guid = '598d9c', position = {-167.69, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true},
-    --         { guid = 'afad6d', position = {-164.01, 1.33, 2.21}, rotation = {0.00, 0.00, 0.00}, lock = true}
-    --     }
-    -- end
+    if not savedData[ShipBook.STARMAP] then
+        ShipBook.CHAPTERS[ShipBook.STARMAP].savedPositions = {
+            { guid = '2a4403', position = {-132.07, 1.30, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '0b11de', position = {-150.67, 1.00, 16.37}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = 'f28bbd', position = {-145.53, 1.40, 3.28}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.RESEARCH] then
+        ShipBook.CHAPTERS[ShipBook.RESEARCH].savedPositions = {
+            { guid = '23a032', position = {-148.01, 1.36, 7.59}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = 'b49ff3', position = {-150.67, 1.00, 17.52}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.PRODUCTION] then
+        ShipBook.CHAPTERS[ShipBook.PRODUCTION].savedPositions = {
+            { guid = '01f712', position = {-171.02, 1.21, 15.85}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '5a53cb', position = {-160.52, 1.22, 15.90}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = 'ae6318', position = {-163.11, 1.36, 7.14}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = 'a6bc81', position = {-157.98, 1.36, 7.16}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = 'bdfc8a', position = {-152.89, 1.36, 7.20}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = 'cafdab', position = {-163.05, 1.36, 0.24}, rotation = {0.00, 180.00, 0.00}, lock = false},
+        }
+    end
+
+    if not savedData[ShipBook.BARRACKS] then
+        ShipBook.CHAPTERS[ShipBook.BARRACKS].savedPositions = {
+            { guid = 'de2813', position = {-150.67, 1.00, 16.73}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.SITUATION_ROOM] then
+        ShipBook.CHAPTERS[ShipBook.SITUATION_ROOM].savedPositions = {
+            { guid = '87baa6', position = {-154.29, 1.22, 15.09}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '94c459', position = {-146.73, 1.22, 15.09}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.HANGAR] then
+        ShipBook.CHAPTERS[ShipBook.HANGAR].savedPositions = {
+            { guid = '518745', position = {-161.61, 1.34, 7.76}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '5375ed', position = {-155.77, 1.36, 7.18}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = '167cc3', position = {-155.73, 1.40, 0.44}, rotation = {0.00, 180.00, 0.00}, lock = false},
+            { guid = '0635c5', position = {-158.03, 0.40, 16.69}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '0dc95c', position = {-150.67, 0.40, 16.68}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = 'd51b21', position = {-143.31, 0.40, 16.68}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.EXPLORATION] then
+        ShipBook.CHAPTERS[ShipBook.EXPLORATION].savedPositions = {
+            { guid = '4f8aff', position = {-131.42, 1.30, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.UNLOADING] then
+        ShipBook.CHAPTERS[ShipBook.UNLOADING].savedPositions = {
+            { guid = '7e55a9', position = {-181.26, 1.34, 5.30}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    if not savedData[ShipBook.MEDBAY] then
+        ShipBook.CHAPTERS[ShipBook.MEDBAY].savedPositions = {
+            { guid = '6ab452', position = {-150.67, 1.00, 21.48}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
 
     -- Initialise the UI
     local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
@@ -223,12 +287,6 @@ function ShipBook.init(savedData)
             end
         })
     end
-
-    -- TODO: Remove this once the binder is done
-    Ui.getRoot():button({
-        id = 'save-state', height = 50, width = 100, rectAlignment = 'UpperLeft', x = 100, y = -10, 
-        text = 'Save', fontSize = 30, onClick = function() log(json.serialize(ShipBook.save())) end
-    })
 end
 
 function ShipBook.expandMenu()
@@ -249,7 +307,6 @@ end
 
 function ShipBook.cleanupExistingChapter()
     -- Put the chapter stuff into the bags
-    -- local chapterBag = getObjectsWithTag('chapterBag') and getObjectsWithTag('chapterBag')[1] or nil
     local chapterBag = ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag)
     if chapterBag then
         local mainBoard = getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].mainBoard)
@@ -257,11 +314,12 @@ function ShipBook.cleanupExistingChapter()
         ShipBook.CHAPTERS[ShipBook.current_chapter].savedPositions = {}
 
         for _, object in ipairs(getObjectFromGUID(ShipBook.SHIPBOOK_ZONE).getObjects()) do
-            -- Save the GUID and position of all objects (except the main board)
+            -- Save the GUID and position of all objects (except the main board) 
             if object.getGUID() ~= ShipBook.CHAPTERS[ShipBook.current_chapter].mainBoard then
-                -- TODO: Save the position in relation to the main board
                 table.insert(ShipBook.CHAPTERS[ShipBook.current_chapter].savedPositions, {
                     guid = object.getGUID(),
+                    -- Is it a good idea?
+                    -- HACK: Can also use mainBoard.positionToLocal() to save it relative to the main board.
                     position = object.getPosition(),
                     rotation = object.getRotation(),
                     lock = object.getLock()
@@ -295,20 +353,22 @@ function ShipBook.globalSetup(chapter)
         guid              = ShipBook.CHAPTERS[chapter].bag,
     })
 
-    chapterBag.attachInvisibleHider('hide', true)
-    chapterBag.getComponent("AudioSource").set('mute', true)
+    chapterBag.attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
+    chapterBag.getComponent("AudioSource").set('mute', ShipBook.HIDE_STORAGE_BAGS)
 
     if ShipBook.CHAPTERS[chapter].mainBoard ~= '' then
         local mainBoard = chapterBag.takeObject({
             position          = ShipBook.MAIN_BOARD_LOCATION,
             rotation          = {0, 180, 0},
-            callback_function = function(obj) obj.setLock(true) obj.interactable = false end,
+            -- TODO: Consider adding obj.interactable = false, but you can't ALT zoom anymore...
+            callback_function = function(obj) obj.setLock(true) end,
             smooth            = false,
             guid              = ShipBook.CHAPTERS[chapter].mainBoard,
         })
 
         for _, saved in ipairs(ShipBook.CHAPTERS[chapter].savedPositions) do
             chapterBag.takeObject({
+                -- HACK: Can also use mainBoard.positionToWorld() to save it relative to the main board.
                 position          = saved.position,
                 rotation          = saved.rotation,
                 callback_function = function(obj)
@@ -320,9 +380,8 @@ function ShipBook.globalSetup(chapter)
         end
 
         -- Move the camera to the main board
-        -- TODO: Add custom camera distance per chapter
         for _, player in ipairs(Player.getPlayers()) do
-            player.lookAt({ position = mainBoard.getPosition(), pitch = 90, distance = 30 })
+            player.lookAt({ position = mainBoard.getPosition(), pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
         end
     end
 end
@@ -331,6 +390,7 @@ function ShipBook.setupResuming()
 end
 
 function ShipBook.setupBridge()
+    -- TODO: Add scanner UI and scripting
 end
 
 function ShipBook.setupStarmap()
