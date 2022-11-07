@@ -1,0 +1,52 @@
+local EventManager = {}
+
+EventManager.handlers = {}
+EventManager.globalHandlers = {}
+
+------------------------------------------------------
+
+function EventManager.addHandler(event, handler)
+    assert(event ~= nil and 'string' == type(event))
+    assert(handler ~= nil and 'function' == type(handler))
+
+    -- If there's already a table for this event, just add the handler
+    local handlers = EventManager.handlers[event]
+    if handlers then
+        table.insert(handlers, handler)
+        return
+    end
+
+    -- Otherwise initialise the table and global event for this
+    EventManager.globalHandlers[event] = _G[event]
+
+    _G[event] = function(...)
+        local globalHandler = EventManager.globalHandlers[event]
+        local returnValue
+        if globalHandler then
+            returnValue = globalHandler(...)
+        end
+
+        local args = table.pack(...)
+        local n = #args
+        table.insert(args, returnValue)
+        for _, handler in ipairs(EventManager.handlers[event]) do
+            args[n + 1] = returnValue
+            returnValue = handler(table.unpack(args))
+        end
+
+        return returnValue
+    end
+
+    EventManager.handlers[event] = { handler }
+end
+
+function EventManager.wipeHandlers(event)
+    EventManager.globalHandlers[event] = nil
+    EventManager.handlers[event] = nil
+
+    _G[event] = nil
+end
+
+------------------------------------------------------
+
+return EventManager

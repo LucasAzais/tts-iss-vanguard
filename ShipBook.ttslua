@@ -2,13 +2,15 @@ local ShipBook = {}
 ShipBook.__index = ShipBook
 
 local Constants = require('Constants')
+local EventManager = require('EventManager')
 local Ui = require('Ui')
 
 ------------------------------------------------------
 
 -- Use this to show/hide the various storage bags used for the ship book
-ShipBook.HIDE_STORAGE_BAGS = true
+ShipBook.HIDE_STORAGE_BAGS = false
 
+ShipBook.SCANNER = 'f28bbd'
 ShipBook.SHIPBOOK_ZONE = '9f8780'
 ShipBook.SHIPBOOK_BAG = '71b8c3'
 ShipBook.TEMPORARY_BAG_LOCATION = {-6.48, 1.30, 89.60}
@@ -186,7 +188,7 @@ function ShipBook.init(savedData)
         ShipBook.CHAPTERS[ShipBook.STARMAP].savedPositions = {
             { guid = '2a4403', position = {-132.07, 1.30, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
             { guid = '0b11de', position = {-150.67, 1.00, 16.37}, rotation = {0.00, 180.00, 0.00}, lock = true},
-            { guid = 'f28bbd', position = {-145.53, 1.40, 3.28}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = ShipBook.SCANNER, position = {-145.53, 1.55, 3.28}, rotation = {0.00, 180.00, 0.00}, lock = true},
         }
     end
 
@@ -287,6 +289,10 @@ function ShipBook.init(savedData)
             end
         })
     end
+
+    -- Various object events
+    -- Starmap Scanner
+    EventManager.addHandler('onObjectCollisionEnter', ShipBook.setupScannerCard)
 end
 
 function ShipBook.expandMenu()
@@ -306,6 +312,11 @@ function ShipBook.collapseMenu()
 end
 
 function ShipBook.cleanupExistingChapter()
+    -- TODO: Possibly move this into separate setup/cleanup functions?
+    if getObjectFromGUID(ShipBook.SCANNER) then
+        getObjectFromGUID(ShipBook.SCANNER).unregisterCollisions()
+    end
+
     -- Put the chapter stuff into the bags
     local chapterBag = ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag)
     if chapterBag then
@@ -321,7 +332,7 @@ function ShipBook.cleanupExistingChapter()
                     -- Is it a good idea?
                     -- HACK: Can also use mainBoard.positionToLocal() to save it relative to the main board.
                     position = object.getPosition(),
-                    rotation = object.getRotation(),
+                    rotation = (object.getGUID()==ShipBook.SCANNER and {0.00, 180.00, 0.00}) or object.getRotation(),
                     lock = object.getLock()
                 })
             end
@@ -390,10 +401,10 @@ function ShipBook.setupResuming()
 end
 
 function ShipBook.setupBridge()
-    -- TODO: Add scanner UI and scripting
 end
 
 function ShipBook.setupStarmap()
+    getObjectFromGUID(ShipBook.SCANNER).registerCollisions()
 end
 
 function ShipBook.setupShipFacilities()
@@ -438,15 +449,89 @@ end
 function ShipBook.setupSavePoint()
 end
 
+-- pos1 = +0.63
+-- pos2 = +1.92
+-- pos3 = +3.24
+-- pos4 = +5.19
+function ShipBook.setupScannerCard(registered_object, info)
+    log('Collision.')
+    if info.collision_object.hasTag('landingCard') and registered_object.getGUID() == ShipBook.SCANNER 
+        and not ShipBook.scanner_in_use then
+        log('Setting up the scanner.')
+
+        ShipBook.scanner_in_use = 1
+        local cardDeltas = {
+            0.63,
+            1.92,
+            3.24,
+            5.19
+        }
+
+        registered_object.setRotation({0.00, 180.00, 0.00})
+        info.collision_object.setLock(true)
+        info.collision_object.setRotationSmooth({0.00, 180.00, 0.00})
+
+        local position = Vector(registered_object.getPosition())
+        position.y = position.y - 0.02
+        position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
+        info.collision_object.setPositionSmooth(position)
+
+        registered_object.createButton({
+            click_function = 'nextScannerStep',
+            function_owner = self,
+            label          = 'Scan',
+            position       = {-1, 0.2, 1.5},
+            scale          = {1/registered_object.getScale().x, 1/registered_object.getScale().y, 1/registered_object.getScale().z},
+            width          = 900,
+            height         = 350,
+            font_size      = 280,
+        })
+
+        registered_object.createButton({
+            click_function = 'revealScanner',
+            function_owner = self,
+            label          = 'Reveal',
+            position       = {1, 0.2, 1.5},
+            scale          = {1/registered_object.getScale().x, 1/registered_object.getScale().y, 1/registered_object.getScale().z},
+            width          = 1000,
+            height         = 350,
+            font_size      = 280,
+        })
+
+        Global.setVar('nextScannerStep', function(obj)
+            if ShipBook.scanner_in_use < #cardDeltas then
+                ShipBook.scanner_in_use = ShipBook.scanner_in_use + 1
+
+                local position = Vector(registered_object.getPosition())
+                position.y = position.y - 0.02
+                position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
+                info.collision_object.setPositionSmooth(position)
+            end
+        end)
+
+        Global.setVar('revealScanner', function(obj)
+            registered_object.setRotation({0.00, 180.00, 180.00})
+            registered_object.clearButtons()
+
+            info.collision_object.setRotation({0.00, 180.00, 180.00})
+            info.collision_object.setLock(false)
+            ShipBook.scanner_in_use = nil
+            getObjectFromGUID(ShipBook.SCANNER).unregisterCollisions()
+        end)
+    end
+end
+
 function ShipBook.save()
-    local flatData = {}
+    local flatData = {
+        scanner_in_use = ShipBook.scanner_in_use,
+        saved_positions = {}
+    }
 
     for name, chapter in pairs(ShipBook.CHAPTERS) do
-        flatData[name] = chapter.savedPositions
+        flatData.saved_positions[name] = chapter.savedPositions
     end
 
-    -- return flatData
-    return ShipBook.CHAPTERS[ShipBook.BRIDGE].savedPositions
+    return flatData
 end
 
 ------------------------------------------------------
