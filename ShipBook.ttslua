@@ -8,7 +8,6 @@ local Ui = require('Ui')
 ------------------------------------------------------
 
 -- Use this to show/hide the various storage bags used for the ship book
-ShipBook.HIDE_STORAGE_BAGS = false
 ShipBook.HIDE_STORAGE_BAGS = true
 
 ShipBook.SCANNER = 'f28bbd'
@@ -280,14 +279,23 @@ function ShipBook.init(savedData)
     assert(Ui.getRoot() ~= nil)
 
     ShipBook.toggle_button = Ui.getRoot():button({
-        id = 'ship-book-menu-toggle', height = 40, width = 40, rectAlignment = 'UpperRight', x = -10, y = -200, onClick = function() ShipBook.expandMenu() end
+        id = 'ship-book-menu-toggle', height = 40, width = 40, rectAlignment = 'UpperRight', x = 0, y = -200, onClick = function() ShipBook.expandMenu() end
     })
     ShipBook.toggle_button.attributes.icon = 'ExpandButton'
     ShipBook.toggle_button.attributes.allowDragging = true
     ShipBook.toggle_button.attributes.returnToOriginalPositionWhenReleased = false
 
+    -- Background panel/image
+    ShipBook.menu_image = Ui.getRoot():panel({
+        id = 'ship-book-cycle-panel', height = 700, width = 100, active = false, x = 12, y = -240, rectAlignment = 'UpperRight'
+    })
+    ShipBook.menu_image:image({
+        id = 'ship-book-cycle-image', image = 'ship-book-cycle'
+    })
+
+    -- Buttons layout
     ShipBook.menu_layout = Ui.getRoot():verticalLayout({
-        id = 'ship-book-menu-layout', height = 600, width = 130, spacing = 10, rectAlignment = 'UpperRight', x = -10, y = -250, active = false
+        id = 'ship-book-menu-layout', height = 685, width = 78, spacing = 5, rectAlignment = 'UpperRight', x = 0, y = -247, active = false
     })
     ShipBook.menu_layout.attributes.showAnimation = 'SlideIn_Right'
     ShipBook.menu_layout.attributes.hideAnimation = 'SlideOut_Right'
@@ -299,12 +307,13 @@ function ShipBook.init(savedData)
 
     for index, name in pairs(orderedChapters) do
         local button = ShipBook.menu_layout:button({
-            id = ShipBook.CHAPTERS[name].name .. '-button', text = ShipBook.CHAPTERS[name].name, fontSize = 20,
+            id = ShipBook.CHAPTERS[name].name .. '-button',
             onClick = function() 
                 ShipBook.globalSetup(name)
                 ShipBook.CHAPTERS[name].onSetup() 
             end
         })
+        button.attributes.colors = '#00000000|#1C1C1C60|#0C0C0C60|rgba(0,0,0,0)'
     end
 
     -- Various object events
@@ -324,6 +333,7 @@ function ShipBook.expandMenu()
 
     -- Display vertical menu
     ShipBook.menu_layout:show()
+    ShipBook.menu_image:show()
 end
 
 function ShipBook.collapseMenu()
@@ -332,6 +342,7 @@ function ShipBook.collapseMenu()
 
     -- Hide vertical menu
     ShipBook.menu_layout:hide()
+    ShipBook.menu_image:hide()
 end
 
 function ShipBook.cleanupExistingChapter()
