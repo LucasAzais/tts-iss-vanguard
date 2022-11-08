@@ -61,7 +61,8 @@ function ShipBook.init(savedData)
             bag = '69d1e2',
             mainBoard = 'c8509a',
             onSetup = ShipBook.setupStarmap,
-            order = 3
+            order = 3,
+            cameraPosition = Vector(9, 0, 5)
         },
         [ShipBook.SHIP_FACILITIES] = {
             name = ShipBook.SHIP_FACILITIES,
@@ -75,7 +76,9 @@ function ShipBook.init(savedData)
             bag = 'd7b876',
             mainBoard = '71da58',
             onSetup = ShipBook.setupResearch,
-            order = 5
+            order = 5,
+            cameraDistance = 32,
+            cameraPosition = Vector(0, 0, 7)
         },
         [ShipBook.PRODUCTION] = {
             name = ShipBook.PRODUCTION,
@@ -83,35 +86,43 @@ function ShipBook.init(savedData)
             mainBoard = 'b07523',
             onSetup = ShipBook.setupProduction,
             order = 6,
-            cameraDistance = 32
+            cameraDistance = 32,
+            cameraPosition = Vector(0, 0, 5)
         },
         [ShipBook.BARRACKS] = {
             name = ShipBook.BARRACKS,
             bag = 'df3235',
             mainBoard = '7933f1',
             onSetup = ShipBook.setupBarracks,
-            order = 7
+            order = 7,
+            cameraPosition = Vector(0, 0, 6)
         },
         [ShipBook.SITUATION_ROOM] = {
             name = ShipBook.SITUATION_ROOM,
             bag = '326323',
             mainBoard = '445b37',
             onSetup = ShipBook.setupSituationRoom,
-            order = 8
+            order = 8,
+            cameraDistance = 29,
+            cameraPosition = Vector(0, 0, 4.5)
         },
         [ShipBook.HANGAR] = {
             name = ShipBook.HANGAR,
             bag = '2a8d62',
             mainBoard = 'd7d7b6',
             onSetup = ShipBook.setupHangar,
-            order = 9
+            order = 9,
+            cameraDistance = 32,
+            cameraPosition = Vector(0, 0, 5)
         },
         [ShipBook.EXPLORATION] = {
             name = ShipBook.EXPLORATION,
             bag = 'cb471a',
             mainBoard = '45ae91',
             onSetup = ShipBook.setupExploration,
-            order = 10
+            order = 10,
+            cameraDistance = 27,
+            cameraPosition = Vector(10, 0, 1)
         },
         [ShipBook.LEAVING] = {
             name = ShipBook.LEAVING,
@@ -148,7 +159,8 @@ function ShipBook.init(savedData)
             mainBoard = 'f471ff',
             onSetup = ShipBook.setupMedbay,
             order = 15,
-            cameraDistance = 38
+            cameraDistance = 40,
+            cameraPosition = Vector(0.5, 0, 6)
         },
         [ShipBook.MEMORIAL_WALL] = {
             name = ShipBook.MEMORIAL_WALL,
@@ -156,7 +168,8 @@ function ShipBook.init(savedData)
             mainBoard = 'dc2dfe',
             onSetup = ShipBook.setupMemorialWall,
             order = 16,
-            cameraDistance = 38
+            cameraDistance = 38,
+            cameraPosition = Vector(0.5, 0, 0)
         },
         [ShipBook.SAVE_POINT] = {
             name = ShipBook.SAVE_POINT,
@@ -293,6 +306,12 @@ function ShipBook.init(savedData)
     -- Various object events
     -- Starmap Scanner
     EventManager.addHandler('onObjectCollisionEnter', ShipBook.setupScannerCard)
+
+    -- TODO: Remove this once done
+    -- Ui.getRoot():button({
+    --     id = 'save-state', height = 50, width = 100, rectAlignment = 'UpperLeft', x = 100, y = -10, 
+    --     text = 'Camera Pos', fontSize = 30, onClick = function() log(Player.getPlayers()[1].camera) end
+    -- })
 end
 
 function ShipBook.expandMenu()
@@ -392,7 +411,8 @@ function ShipBook.globalSetup(chapter)
 
         -- Move the camera to the main board
         for _, player in ipairs(Player.getPlayers()) do
-            player.lookAt({ position = mainBoard.getPosition(), pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
+            player.lookAt({ position = mainBoard.getPosition() + (ShipBook.CHAPTERS[chapter].cameraPosition or Vector(0, 0, 0)), 
+                    pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
         end
     end
 end
@@ -521,6 +541,7 @@ function ShipBook.setupScannerCard(registered_object, info)
     end
 end
 
+-- TODO: Finish the save function here
 function ShipBook.save()
     local flatData = {
         scanner_in_use = ShipBook.scanner_in_use,

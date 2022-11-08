@@ -7,9 +7,13 @@
 -- Local vars: camelCase
 
 -- TODO: Make on screen UI for Command/Energy/Success/Penalty tokens
--- TODO: Planet Scanner
 -- TODO: Available crew per section -> drawers
 -- TODO: Consider hiding the ShipBook elements while they load
+-- TODO: Change the order of the dice rows at the top of the table (red -> green -> blue)
+-- FIXME: Change hand position to make it reachable teal = {-48.40, 3.43, -61.91}
+-- TODO: Fix card size (section cards in particular) + tutorial cards size and order (unique discovery, mission etc...)
+-- TODO: POI scale = {1.99, 1.00, 1.99}?
+-- TODO: Implement save chest
 
 local Constants = require('Constants')
 local Log = require('Log')
