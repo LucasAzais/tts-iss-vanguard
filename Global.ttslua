@@ -44,5 +44,9 @@ function onLoad(script_state)
 end
 
 function onSave()
+    local dataToSave = {}
 
+    dataToSave.ship_book = ShipBook.save()
+
+    return JSON.encode(dataToSave)
 end

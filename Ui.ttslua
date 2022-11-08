@@ -375,6 +375,7 @@ function Ui:image(params)
     image.scale = self.scale
     image.attributes.image = params.image
     image.attributes.raycastTarget = true
+    image.attributes.preserveAspect = true
 
     setmetatable(image, Ui)
     image:registerOnClick(params.onClick)
