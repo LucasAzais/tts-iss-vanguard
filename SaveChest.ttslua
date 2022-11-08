@@ -1,0 +1,93 @@
+local saved_object_data = {}
+local saved_state = nil
+
+function onSave()
+    return JSON.encode({
+        saved_object_data = saved_object_data,
+        saved_state = saved_state
+    })
+end
+
+function onLoad(script_state)
+    local savedData = JSON.decode(script_state) or {}
+
+    if savedData.saved_state ~= nil then
+        saved_object_data = savedData.saved_object_data
+        saved_state = savedData.saved_state
+
+        self.createButton({
+            label="Load Game", click_function="loadGame", function_owner=self,
+            position={0,0.4,-1}, rotation={0, 180, 0}, height=250, width=800, font_size=120
+        })
+    else
+        self.createButton({
+            label="Save Game", click_function="warnSaveGame", function_owner=self,
+            position={0,0.4,-1}, rotation={0, 180, 0}, height=250, width=800, font_size=120
+        })
+    end
+end
+
+function warnSaveGame()
+    broadcastToAll('Please finish the current gameplay loop and put away the cards before saving.\nIf you\'re ready, click on "Save Game" again.', Color.Blue)
+    self.editButton({index = 0, click_function = "saveGame"})
+
+    -- Wait 5s before reverting to the warning message
+    Wait.time(function() 
+        self.editButton({index = 0, click_function = "warnSaveGame"})
+    end, 5, 0)
+end
+
+function saveGame()
+    -- Clean the table before saving
+    Global.call('prepareTableForSave')
+
+    -- Save all objects with the savedObject tag
+    for _, object in ipairs(Global.getObjects()) do
+        if object.hasTag('savedObject') then
+            local pos = object.getPosition()
+            local rot = object.getRotation()
+       
+            saved_object_data[object.getGUID()] = {
+                position = object.getPosition(),
+                rotation = object.getRotation(),
+                locked = object.getLock()
+            }
+            self.putObject(object)
+        end
+    end
+
+    saved_state = Global.call('onSave')
+
+    self.editButton({index = 0, click_function = "loadGame", label = "Load Game" })
+    broadcastToAll('Saved game into the save chest.', Color.Black)
+    log(saved_state)
+end
+
+function loadGame()
+    -- Delete the old elements
+    for _, object in ipairs(Global.getObjects()) do
+        if object.hasTag('savedObject') then
+            object.destruct()
+        end
+    end
+
+    -- Replace everything
+    for _, object in ipairs(self.getObjects()) do
+        if saved_object_data[object.guid] then
+            self.takeObject({
+                position = saved_object_data[object.guid].position,
+                rotation = saved_object_data[object.guid].rotation,
+                callback_function = function(obj)
+                    if saved_object_data[obj.getGUID()].locked then
+                        obj.setLock(true)
+                    end
+                end,
+                guid              = object.guid,
+            })
+        end
+    end
+
+    self.editButton({index = 0, click_function = "saveGame", label = "Save Game" })
+
+    Global.call('loadState', {saved_state = saved_state})
+end

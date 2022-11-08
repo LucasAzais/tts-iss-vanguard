@@ -8,7 +8,7 @@ local Ui = require('Ui')
 ------------------------------------------------------
 
 -- Use this to show/hide the various storage bags used for the ship book
-ShipBook.HIDE_STORAGE_BAGS = true
+ShipBook.HIDE_STORAGE_BAGS = false
 
 ShipBook.SCANNER = 'f28bbd'
 ShipBook.SHIPBOOK_ZONE = '9f8780'
@@ -575,5 +575,6 @@ end
 
 return {
     init = ShipBook.init,
-    save = ShipBook.save
+    save = ShipBook.save,
+    cleanupExistingChapter = ShipBook.cleanupExistingChapter,
 }

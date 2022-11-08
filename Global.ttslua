@@ -16,6 +16,7 @@
 -- TODO: Implement save chest
 
 local Constants = require('Constants')
+local EventManager = require('EventManager')
 local Log = require('Log')
 local ShipBook = require('ShipBook')
 local Ui = require('Ui')
@@ -49,4 +50,28 @@ function onSave()
     dataToSave.ship_book = ShipBook.save()
 
     return JSON.encode(dataToSave)
+end
+
+function prepareTableForSave()
+    ShipBook.cleanupExistingChapter()
+end
+
+function loadState(params)
+    if params and params.saved_state then
+        broadcastToAll('Loading the save chest.', Color.Black)
+
+        -- Reset the UI
+        Ui.getRoot():fullWipe()
+
+        -- Reset handlers
+        EventManager.wipeHandlers('onObjectCollisionEnter')
+
+        -- Reload the game
+        Wait.condition(function()
+            onLoad(params.saved_state)
+            broadcastToAll('Save loaded.', Color.Black)
+        end, function()
+            return not Ui.getRoot().object.UI.loading
+        end)
+    end
 end
