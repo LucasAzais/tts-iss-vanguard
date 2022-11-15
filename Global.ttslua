@@ -6,20 +6,38 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
--- TODO: Make on screen UI for Command/Energy/Success/Penalty tokens
--- TODO: Available crew per section -> drawers
+-- TODO: Rest all crew at once
 -- TODO: Consider hiding the ShipBook elements while they load
--- TODO: Change the order of the dice rows at the top of the table (red -> green -> blue)
--- FIXME: Change hand position to make it reachable teal = {-48.40, 3.43, -61.91}
+
 -- TODO: Fix card size (section cards in particular) + tutorial cards size and order (unique discovery, mission etc...)
+
 -- TODO: POI scale = {1.99, 1.00, 1.99}?
--- TODO: Implement save chest
+-- HACK: POI scale = {2.05, 1.00, 2.05}
+-- HACK: Crew for Board {2.93, 1.00, 2.93}
+-- HACK: Unique Descovery back {1.36, 1.00, 1.36}
+-- HACK: Unique Descovery front {1.87, 1.00, 1.87}
+
+-- TODO: Change upgrade station board
+-- TODO: Change upgrade station icons (transparent?)
+-- TODO: Add crewmember tag and snap point tags on the drawer
+
+-- TODO: Add empty bridge cards tray
+-- TODO: Situations needed on the bridge
+
+-- TODO: Add lander board snap points
 
 local Constants = require('Constants')
+local Cycle = require('Cycle')
 local EventManager = require('EventManager')
+local Exploration = require('Exploration')
 local Log = require('Log')
+local Section = require('Section')
 local ShipBook = require('ShipBook')
 local Ui = require('Ui')
+local UpgradeStation = require('UpgradeStation')
+
+-- book = {7.27, 1.00, 7.27}
+-- 
 
 ------------------------------------------------------
 
@@ -37,10 +55,16 @@ function onLoad(script_state)
 
     -- Parse save data
     local savedData = JSON.decode(script_state) or {}
+    savedData = {}
+    log(savedData)
 
     Log.init()
     Ui.init()
     ShipBook.init(savedData.ship_book or {})
+    Exploration.init(savedData.exploration or {})
+    Section.init(savedData.sections or {})
+    UpgradeStation.init()
+    Cycle.init(savedData.cycle or {})
     Ui.globalRefresh()
 end
 
@@ -48,12 +72,16 @@ function onSave()
     local dataToSave = {}
 
     dataToSave.ship_book = ShipBook.save()
+    dataToSave.exploration = Exploration.save()
+    dataToSave.sections = Section.save()
+    dataToSave.cycle = Cycle.save()
 
     return JSON.encode(dataToSave)
 end
 
 function prepareTableForSave()
     ShipBook.cleanupExistingChapter()
+    Section.closeAllDrawers()
 end
 
 function loadState(params)

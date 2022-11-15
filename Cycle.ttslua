@@ -1,0 +1,67 @@
+local Cycle = {}
+Cycle.__index = Cycle
+
+local Constants = require('Constants')
+local EventManager = require('EventManager')
+local Exploration = require('Exploration')
+local ShipBook = require('ShipBook')
+local Section = require('Section')
+local Ui = require('Ui')
+
+Cycle.EXPLORATION = 'Planetary Exploration'
+Cycle.SHIPBOOK = 'Ship Management'
+
+------------------------------------------------------
+
+function Cycle.init(savedData)
+    -- Get the current cycle step
+    Cycle.current_phase = savedData.current_phase or Cycle.EXPLORATION
+
+    -- Create the exploration/management button
+    local text = ''
+    if Cycle.current_phase == Cycle.EXPLORATION then
+        text = Cycle.SHIPBOOK
+    else
+        text = Cycle.EXPLORATION
+    end
+
+    Cycle.button = Ui.getRoot():button({
+        id = 'cycle-toggle', height = 70, width = 200, rectAlignment = 'UpperLeft', x = 100, y = -10, 
+        text = text, fontSize = 25, onClick = function() Cycle.nextPhase() end
+    })
+    Cycle.button.attributes.allowDragging = true
+    Cycle.button.attributes.returnToOriginalPositionWhenReleased = false
+end
+
+function Cycle.nextPhase()
+    if Cycle.current_phase == Cycle.EXPLORATION then
+        Exploration.endPhase()
+
+        Cycle.current_phase = Cycle.SHIPBOOK
+        Cycle.button:setText(Cycle.EXPLORATION)
+        
+        ShipBook.startPhase()
+    else
+        ShipBook.endPhase()
+        
+        Cycle.current_phase = Cycle.EXPLORATION
+        Cycle.button:setText(Cycle.SHIPBOOK)
+
+        Exploration.startPhase()
+    end
+end
+
+function Cycle.save()
+    local flatData = {
+        current_phase = Cycle.current_phase
+    }
+
+    return flatData
+end
+
+------------------------------------------------------
+
+return {
+    init = Cycle.init,
+    save = Cycle.save,
+}

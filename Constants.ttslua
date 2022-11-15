@@ -8,6 +8,8 @@ Constants.INFO = 2
 Constants.WARNING = 3
 Constants.ERROR = 4
 
+Constants.TABLE_GUID = '4ee1f2'
+
 ------------------------------------------------------
 
 return Constants

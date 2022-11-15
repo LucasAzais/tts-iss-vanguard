@@ -41,26 +41,28 @@ function saveGame()
     -- Clean the table before saving
     Global.call('prepareTableForSave')
 
-    -- Save all objects with the savedObject tag
-    for _, object in ipairs(Global.getObjects()) do
-        if object.hasTag('savedObject') then
-            local pos = object.getPosition()
-            local rot = object.getRotation()
-       
-            saved_object_data[object.getGUID()] = {
-                position = object.getPosition(),
-                rotation = object.getRotation(),
-                locked = object.getLock()
-            }
-            self.putObject(object)
+    -- Wait 0.5s for everything to be cleaned up (shouldn't need to but just in case)
+    Wait.time(function()
+        -- Save all objects with the savedObject tag
+        for _, object in ipairs(Global.getObjects()) do
+            if object.hasTag('savedObject') then
+                local pos = object.getPosition()
+                local rot = object.getRotation()
+        
+                saved_object_data[object.getGUID()] = {
+                    position = object.getPosition(),
+                    rotation = object.getRotation(),
+                    locked = object.getLock()
+                }
+                self.putObject(object)
+            end
         end
-    end
 
-    saved_state = Global.call('onSave')
+        saved_state = Global.call('onSave')
 
-    self.editButton({index = 0, click_function = "loadGame", label = "Load Game" })
-    broadcastToAll('Saved game into the save chest.', Color.Black)
-    log(saved_state)
+        self.editButton({index = 0, click_function = "loadGame", label = "Load Game" })
+        broadcastToAll('Saved game into the save chest.', Color.Black)
+    end, 0.5)
 end
 
 function loadGame()

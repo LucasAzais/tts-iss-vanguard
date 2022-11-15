@@ -1,0 +1,76 @@
+local Exploration = {}
+Exploration.__index = Exploration
+
+local Constants = require('Constants')
+local EventManager = require('EventManager')
+local Ui = require('Ui')
+
+Exploration.HIDE_STORAGE_BAGS = false
+
+Exploration.PLANETOPEDIA = '10e2ca'
+Exploration.EXPLORATION_ZONE = '9f8780'
+Exploration.EXPLORATION_BAG = '19a0f8'
+
+------------------------------------------------------
+
+function Exploration.init(savedData)
+    getObjectFromGUID(Exploration.EXPLORATION_BAG).attachInvisibleHider('hide', Exploration.HIDE_STORAGE_BAGS)
+    getObjectFromGUID(Exploration.EXPLORATION_BAG).getComponent("AudioSource").set('mute', Exploration.HIDE_STORAGE_BAGS)
+
+    Exploration.saved_positions = savedData.saved_positions or {}
+end
+
+function Exploration.startPhase()
+    local explorationBag = getObjectFromGUID(Exploration.EXPLORATION_BAG)
+
+    for _, saved in ipairs(Exploration.saved_positions) do
+        explorationBag.takeObject({
+            position          = saved.position,
+            rotation          = saved.rotation,
+            callback_function = function(obj)
+                obj.setLock(saved.lock)
+            end,
+            smooth            = false,
+            guid              = saved.guid,
+        })
+    end
+end
+
+function Exploration.endPhase()
+    local explorationBag = getObjectFromGUID(Exploration.EXPLORATION_BAG)
+
+    -- Reset positions and register them again
+    Exploration.saved_positions = {}
+    for _, object in ipairs(getObjectFromGUID(Exploration.EXPLORATION_ZONE).getObjects()) do
+        -- Save the GUID and position of all objects
+        if object.getGUID() ~= Constants.TABLE_GUID then
+            table.insert(Exploration.saved_positions, {
+                guid = object.getGUID(),
+                position = object.getPosition(),
+                rotation = object.getRotation(),
+                lock = object.getLock()
+            })
+
+            -- Put the object away
+            object.attachInvisibleHider('hide', true)
+            explorationBag.putObject(object)
+        end
+    end
+end
+
+function Exploration.save()
+    local flatData = {
+        saved_positions = Exploration.saved_positions
+    }
+
+    return flatData
+end
+
+------------------------------------------------------
+
+return {
+    init = Exploration.init,
+    save = Exploration.save,
+    startPhase = Exploration.startPhase,
+    endPhase = Exploration.endPhase,
+}

@@ -100,6 +100,7 @@ function Ui:createElementOnObject(tag, params)
     assert(params.width == nil or 'number' == type(params.width))
     assert(params.height == nil or 'number' == type(params.height))
     assert(params.active == nil or 'boolean' == type(params.active))
+    assert(params.scale == nil or 'string' == type(params.scale))
 
     local element = {
         tag = tag,
@@ -109,10 +110,11 @@ function Ui:createElementOnObject(tag, params)
             id = params.id,
             position = (params.x or 0) .. ' ' .. (params.y or 0) .. ' ' .. (params.z or self.z),
             rotation = self.rotation,
-            scale = self.scale,
+            -- Use the parent's scale for the first root elements, otherwise it's 1-1-1 scale unless specified
+            scale = params.scale or self.scale or '1 1 1', 
             width = params.width or '100%',
             height = params.height or '100%',
-            rectAlignment = params.rectAlignment or 'UpperLeft',
+            rectAlignment = params.rectAlignment or 'MiddleCenter',
             active = params.active == nil or params.active,
             showAnimation = 'FadeIn',
             hideAnimation = 'FadeOut',
@@ -138,7 +140,7 @@ function Ui:panel(params)
     local layout = self:createElement('Panel', params)
     layout.z = self.z
     layout.rotation = '0 0 0'
-    layout.scale = self.scale
+    -- layout.scale = self.scale
     layout.attributes.childForceExpandHeight = 'false'
 
     setmetatable(layout, Ui)
@@ -152,7 +154,7 @@ function Ui:verticalLayout(params)
     local layout = self:createElement('VerticalLayout', params)
     layout.z = self.z
     layout.rotation = '0 0 0'
-    layout.scale = self.scale
+    -- layout.scale = self.scale
     -- layout.attributes.childForceExpandWidth = false
     -- layout.attributes.childForceExpandHeight = false
 
@@ -171,7 +173,7 @@ function Ui:horizontalLayout(params)
     local layout = self:createElement('HorizontalLayout', params)
     layout.z = self.z
     layout.rotation = '0 0 0'
-    layout.scale = self.scale
+    -- layout.scale = self.scale
     -- layout.attributes.childForceExpandWidth = false
     -- layout.attributes.childForceExpandHeight = false
 
@@ -192,7 +194,7 @@ function Ui:gridLayout(params)
     local layout = self:createElement('GridLayout', params)
     layout.z = self.z
     layout.rotation = '0 0 0'
-    layout.scale = self.scale
+    -- layout.scale = self.scale
 
     if params.spacing ~= nil then
         layout.attributes.spacing = params.spacing
@@ -215,7 +217,7 @@ function Ui:toggleGroup(params)
     local toggleGroup = self:createElement('ToggleGroup', params)
     toggleGroup.z = self.z
     -- toggleGroup.rotation = '0 0 0'
-    toggleGroup.scale = self.scale
+    -- toggleGroup.scale = self.scale
 
     setmetatable(toggleGroup, Ui)
 
@@ -231,7 +233,7 @@ function Ui:toggle(params)
     local toggle = self:createElement('Toggle', params)
     toggle.z = self.z
     -- toggle.rotation = '0 0 0'
-    toggle.scale = self.scale
+    -- toggle.scale = self.scale
 
     if params.text ~= nil then
         toggle.attributes.text = params.text
@@ -250,7 +252,9 @@ function Ui:toggle(params)
     end
 
     setmetatable(toggle, Ui)
-    toggle:registerOnValueChanged(params.onValueChanged)
+    if params.onValueChanged then
+        toggle:registerOnValueChanged(params.onValueChanged)
+    end
 
     return toggle
 end
@@ -262,7 +266,7 @@ function Ui:toggleButton(params)
     local toggle = self:createElement('ToggleButton', params)
     toggle.z = self.z
     -- toggle.rotation = '0 0 0'
-    toggle.scale = self.scale
+    -- toggle.scale = self.scale
     
     if params.text ~= nil then
         toggle.attributes.text = params.text
@@ -273,7 +277,9 @@ function Ui:toggleButton(params)
     end
 
     setmetatable(toggle, Ui)
-    toggle:registerOnValueChanged(params.onValueChanged)
+    if params.onValueChanged then
+        toggle:registerOnValueChanged(params.onValueChanged)
+    end
 
     return toggle
 end
@@ -282,7 +288,7 @@ function Ui:dropdown(params)
     local dropdown = self:createElement('Dropdown', params)
     dropdown.z = self.z
     -- dropdown.rotation = '0 0 0'
-    dropdown.scale = self.scale
+    -- dropdown.scale = self.scale
 
     setmetatable(dropdown, Ui)
 
@@ -295,7 +301,7 @@ function Ui:option(params)
     local option = self:createElement('Option', params)
     option.z = self.z
     -- option.rotation = '0 0 0'
-    option.scale = self.scale
+    -- option.scale = self.scale
     option.attributes.value = params.value
 
     setmetatable(option, Ui)
@@ -305,23 +311,22 @@ end
 
 function Ui:button(params)
     assert(params.text == nil or 'string' == type(params.text))
-    assert(params.fontSize == nil or 'number' == type(params.fontSize))
 
     local button = self:createElement('Button', params)
     button.z = self.z
     -- button.rotation = '0 0 0'
-    button.scale = self.scale
+    -- button.scale = self.scale
 
-    if params.text ~= nil then
-        button.attributes.text = params.text
-    end
-
-    if params.fontSize ~= nil then
-        button.attributes.fontSize = params.fontSize
-    end
+    button.attributes.text = params.text
+    button.attributes.fontSize = params.fontSize
+    button.attributes.colors = params.colors or '#FFFFFF|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
+    -- button.attributes.image = params.image or nil
+    -- button.attributes.icon = params.icon or nil
 
     setmetatable(button, Ui)
-    button:registerOnClick(params.onClick)
+    if params.onClick then
+        button:registerOnClick(params.onClick)
+    end
 
     return button
 end
@@ -333,7 +338,7 @@ function Ui:text(params)
     local text = self:createElement('Text', params)
     text.z = self.z
     -- text.rotation = '0 0 0'
-    text.scale = self.scale
+    -- text.scale = self.scale
     text.attributes.text = params.text
 
     if params.fontSize ~= nil then
@@ -341,7 +346,9 @@ function Ui:text(params)
     end
     
     setmetatable(text, Ui)
-    text:registerOnClick(params.onClick)
+    if params.onClick then
+        text:registerOnClick(params.onClick)
+    end
 
     return text
 end
@@ -353,7 +360,7 @@ function Ui:input(params)
     local input = self:createElement('InputField', params)
     input.z = self.z
     -- input.rotation = '0 0 0'
-    input.scale = self.scale
+    -- input.scale = self.scale
     input.attributes.text = params.text
 
     if params.fontSize ~= nil then
@@ -361,7 +368,9 @@ function Ui:input(params)
     end
 
     setmetatable(input, Ui)
-    input:registerOnValueChanged(params.onValueChanged)
+    if params.onValueChanged then
+        input:registerOnValueChanged(params.onValueChanged)
+    end
 
     return input
 end
@@ -372,13 +381,15 @@ function Ui:image(params)
     local image = self:createElement('Image', params)
     image.z = self.z
     -- image.rotation = '0 0 0'
-    image.scale = self.scale
+    -- image.scale = self.scale
     image.attributes.image = params.image
     image.attributes.raycastTarget = true
     image.attributes.preserveAspect = true
 
     setmetatable(image, Ui)
-    image:registerOnClick(params.onClick)
+    if params.onClick then
+        image:registerOnClick(params.onClick)
+    end
 
     return image
 end
@@ -497,6 +508,7 @@ function Ui:setOffsetXY(offsetXY) self:setAttribute('offsetXY', 'string', offset
 function Ui:setActive(active) self:setAttribute('active', 'boolean', active) end
 function Ui:setImage(value) self:setAttribute('image', 'string', value ~= nil and tostring(value) or '') end
 function Ui:setIcon(value) self:setAttribute('icon', 'string', value ~= nil and tostring(value) or '') end
+function Ui:setColor(value) self:setAttribute('color', 'string', value ~= nil and tostring(value) or '') end
 
 -- This doesn't need the setAttribute because we've already registeredOnClick initially, and that calls self.onClick instead of self.attributes.onClick
 function Ui:setOnClick(onClick)

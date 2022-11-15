@@ -132,6 +132,22 @@ function Utils.toboolean(str)
     return nil
 end
 
+function Utils.getElementsAbove(object)
+    local result = Physics.cast({
+        origin       = object.getPosition(),
+        direction    = Vector(0, 1, 0),
+        type         = 1,
+        max_distance = 10,
+        debug        = false,
+    })
+
+    if result and #result > 0 then
+        return result[1].hit_object
+    else 
+        return nil
+    end
+end
+
 ------------------------------------------------------
 
 return Utils

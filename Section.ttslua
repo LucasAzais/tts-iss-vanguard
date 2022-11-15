@@ -1,0 +1,471 @@
+local Section = {}
+Section.__index = Section
+
+local Constants = require('Constants')
+local EventManager = require('EventManager')
+local Ui = require('Ui')
+
+Section.HIDE_STORAGE_BAGS = false
+
+-- Colors
+Section.GREEN_COLOR = '#2CEB2B'
+Section.ORANGE_COLOR = '#EB8323'
+Section.RED_COLOR = '#EB2323'
+
+Section.RESTING_CREW = 'c800d4'
+
+-- Sections
+Section.SECURITY = 'Security'
+Section.SCIENCE = 'Science'
+Section.RECON = 'Recon'
+Section.ENGINEERING = 'Engineering'
+
+-- Ranks
+Section.RANK0 = 0
+Section.RANK1 = 1
+Section.RANK2 = 2
+Section.RANK3 = 3
+
+Section.SECTIONS = {
+    [Section.SECURITY] = {
+        name = Section.SECURITY,
+        board = '07b6c0',
+        turnToken = 'ada930',
+        color = Color(29/255, 205/255, 255/255), -- '#1DCDFF',
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerContent = { { guid = '1e73e3', position = {-48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
+        drawerZone = 'ab5f9e',
+        crew = {},
+    },
+    [Section.SCIENCE] = {
+        name = Section.SCIENCE,
+        board = 'cf71e9',
+        turnToken = '604883',
+        color = Color(92/255, 20/255, 188/255), -- '#5C14BC'
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerContent = { { guid = '12be99', position = {-16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
+        drawerZone = '9e2f6c',
+        crew = {},
+    },
+    [Section.RECON] = {
+        name = Section.RECON,
+        board = '12ef80',
+        turnToken = '7ed433',
+        color = Color(245/255, 112/255, 206/255), -- '#F570CE'
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerContent = { { guid = 'd84252', position = {16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
+        drawerZone = '72e714',
+        crew = {},
+    },
+    [Section.ENGINEERING] = {
+        name = Section.ENGINEERING,
+        board = 'e5a559',
+        turnToken = '722590',
+        color = Color(250/255, 223/255, 63/255), -- '#FADF3F'
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerContent = { { guid = '051866', position = {48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
+        drawerZone = '877a3b',
+        crew = {},
+    },
+}
+
+------------------------------------------------------
+
+function Section.init(savedData)
+    -- Resting Crew button
+    Section.resting_crew_root = Ui.createRootOnObject('resting-crew-root', getObjectFromGUID(Section.RESTING_CREW), 0)
+    Section.resting_crew_root.scale = '0.25 0.25 0.25'
+
+    local panel = Section.resting_crew_root:panel({
+        id = 'resting-crew-panel', width = 590, height = 190, x = 2, y = -140, z = -25
+    })
+
+    local button = panel:button({
+        id = 'resting-crew-button', onClick = function() Section.readyAllCrew() end, colors = '#00000000|#1C1C1C60|#0C0C0C60|rgba(0,0,0,0)'
+    })
+
+    -- Individual Section UI and drawer
+    for name, section in pairs(Section.SECTIONS) do
+        local sectionBoard = getObjectFromGUID(section.board)
+
+        -- Set some of the variables
+        section.crew = (savedData[name] and savedData[name].crew) or {}
+        log('Loaded crew members for ' .. name)
+        log(section.crew)
+
+        section.availableActions = 2
+        section.isReady = (savedData[name] and savedData[name].isReady) or false
+        section.drawerOpen = (savedData[name] and savedData[name].drawerOpen) or false
+
+        -- Create drawer bags if required
+        -- if not savedData[name] or not savedData[name].drawerBag or not getObjectFromGUID(section.drawerBag) then
+        --     section.drawerContent = {}
+
+        --     local drawerBag = spawnObject({
+        --         type              = 'Bag',
+        --         position          = sectionBoard.getPosition() + Vector(0, -10, 0),
+        --         callback_function = function(obj)
+        --             obj.setLock(true)
+        --             obj.addTag('savedObject')
+        --             obj.addTag('drawerBag')
+        --             obj.addTag(section.name)
+        --             obj.attachInvisibleHider('hide', Section.HIDE_STORAGE_BAGS)
+        --             obj.getComponent("AudioSource").set('mute', Section.HIDE_STORAGE_BAGS)
+        --         end,
+        --         sound             = false,
+        --     })
+        --     section.drawerBag = drawerBag.getGUID()
+
+        --     -- zone pos {48.43, 2.20, -84.34}
+        --     -- zone scale {31.87, 5.10, 33.68}
+        --     -- crewmember scale {2.99, 1.00, 2.99}
+        --     -- position {48.43, 1.56, -78.86}
+        --     local board = spawnObject({
+        --         type              = 'Custom_Tile',
+        --         position          = sectionBoard.getPosition() + Vector(0, 0, -45.26),
+        --         rotation          = {0, 180, 0},
+        --         scale             = {15.08, 1, 15.08},
+        --         callback_function = function(obj)
+        --             obj.setLock(true)
+        --             obj.addTag('savedObject')
+        --             obj.setColorTint(Color(0,0,0))
+
+        --             table.insert(section.drawerContent, {guid = obj.getGUID(), position = obj.getPosition(), rotation = obj.getRotation(), lock = obj.getLock()})
+        --             drawerBag.putObject(obj)
+        --         end,
+        --     })
+        --     board.attachInvisibleHider('hide', Section.HIDE_STORAGE_BAGS)
+        --     board.getComponent("AudioSource").set('mute', Section.HIDE_STORAGE_BAGS)
+
+        --     board.setCustomObject({
+        --         image = section.drawerImage,
+        --         type = 0,
+        --         thickness = 0.1,
+        --     })
+
+        --     board.setSnapPoints({
+        --         {
+        --             position         = {0.243267, 0.1, -0.6607718},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {-0.2419992, 0.1, -0.6607718},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {-0.4767896, 0.1, 0},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {0.0107024, 0.1, 0},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {0.4940155, 0.1, 0},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {0.7266603, 0.1, 0.6625584},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {0.2429428, 0.1, 0.6625583},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {-0.2435943, 0.1, 0.659374},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --         {
+        --             position         = {-0.7277479, 0.1, 0.6609893},
+        --             rotation         = {0, 0, 0},
+        --             rotation_snap    = true,
+        --         },
+        --     })
+        -- else
+
+        -- Get drawer bag
+        local drawerBag = getObjectsWithAllTags({'drawerBag', section.name})[1]
+        section.drawerBag = drawerBag.getGUID()
+
+        -- Get drawer content
+        if savedData[name] and savedData[name].drawerContent then
+            section.drawerContent = savedData[name].drawerContent
+        end
+
+        drawerBag.attachInvisibleHider('hide', Section.HIDE_STORAGE_BAGS)
+        drawerBag.getComponent("AudioSource").set('mute', Section.HIDE_STORAGE_BAGS)
+        -- end
+
+        section.uiRoot = Ui.createRootOnObject(name .. '-section-root', sectionBoard, 0)
+        section.uiRoot.scale = '0.25 0.25 0.25'
+
+        local panel = section.uiRoot:panel({ id = name .. '-section-panel', x = 0, y = 370, z = -10, width = 1000, height = 300})
+        panel.attributes.color = '#'..section.color:toHex(false)
+
+        -- Actions tracker
+        local actionText = panel:text({
+            id = name .. '-section-action-text', fontSize = 100, text = 'Actions', x = -130, y = 70
+        })
+        actionText.attributes.fontStyle = 'Bold'
+
+        section.action1 = panel:button({
+            id = name .. '-section-action1', onClick = function() Section.useAction(section.action1, name) end, width = 300, height = 120, x=-300, y=-70,
+            text = '1', fontSize = 100
+        })
+        section.action1.attributes.fontStyle = 'Bold'
+        section.action1.attributes.color = Section.GREEN_COLOR
+        section.action1.available = true
+
+        section.action2 = panel:button({
+            id = name .. '-section-action2', onClick = function() Section.useAction(section.action2, name) end, width = 300, height = 120, x=50, y=-70,
+            text = '2', fontSize = 100
+        })
+        section.action2.attributes.fontStyle = 'Bold'
+        section.action2.attributes.color = Section.GREEN_COLOR
+        section.action2.available = true
+
+        section.ready = panel:button({
+            id = name .. '-section-ready', onClick = function() Section.ready(name) end, width = 650, height = 120, x=-130, y=-70,
+            text = 'Ready', fontSize = 100, active = false
+        })
+        if section.isReady then
+            section.ready.attributes.color = Section.ORANGE_COLOR
+        else
+            section.ready.attributes.color = Section.RED_COLOR
+        end
+
+        -- Drawer button
+        section.drawerButton = panel:button({
+            id = name .. '-section-button', onClick = function() Section.openDrawer(name) end, width = 200, height = 200, x=350, y=0
+        })
+        section.drawerButton.attributes.image = 'down-arrow'
+    end
+end
+
+function Section.useAction(button, name)
+    local section = Section.SECTIONS[name]
+
+    if button.available then
+        button:setColor(Section.RED_COLOR)
+        section.availableActions = section.availableActions - 1
+    else
+        button:setColor(Section.GREEN_COLOR)
+        section.availableActions = section.availableActions + 1
+    end
+    
+    button.available = not button.available
+
+    if section.availableActions <= 0 then
+        getObjectFromGUID(section.turnToken).setRotation({0.00, 180.00, 0.00})
+        broadcastToAll(name .. ' must draw an Event.', Section.SECTIONS[name].color)
+
+        -- Replace the buttons
+        section.uiRoot:hide(name .. '-section-action1')
+        section.uiRoot:hide(name .. '-section-action2')
+        section.uiRoot:show(name .. '-section-ready')
+    end
+end
+
+function Section.ready(name)
+    Section.SECTIONS[name].isReady = true
+    Section.SECTIONS[name].ready:setColor(Section.ORANGE_COLOR)
+
+    local allReady = true
+    for _, section in pairs(Section.SECTIONS) do
+        log(section.isReady)
+        if not section.isReady then allReady = false end
+    end
+
+    if allReady then
+        Section.resetRound()
+    end
+end
+
+function Section.resetRound()
+    for _, section in pairs(Section.SECTIONS) do
+        getObjectFromGUID(section.turnToken).setRotation({0.00, 180.00, 180.00})
+        section.availableActions = 2
+        section.isReady = false
+
+        section.uiRoot:hide(section.name .. '-section-ready')
+        section.uiRoot:show(section.name .. '-section-action1')
+        section.uiRoot:show(section.name .. '-section-action2')
+
+        section.action1:setColor(Section.GREEN_COLOR)
+        section.action1.available = true
+        section.action2:setColor(Section.GREEN_COLOR)
+        section.action2.available = true
+        section.ready:setColor(Section.RED_COLOR)
+    end
+
+    broadcastToAll('The away team can select a new start player.', Color.Blue)
+end
+
+function Section.openDrawer(name, moveCamera)
+    if not Section.SECTIONS[name] or not Section.SECTIONS[name].drawerBag then return end
+    local section = Section.SECTIONS[name]
+
+    -- Check if it is already open
+    if not section.drawerOpen then
+        log('Opening ' .. name .. ' drawer.')
+
+        section.drawerButton:setImage('up-arrow')
+        section.drawerButton:setOnClick(function()
+            Section.closeDrawer(name)
+        end)
+
+        local drawerBag = getObjectFromGUID(section.drawerBag)
+        for _, element in ipairs(section.drawerContent) do
+            log(element)
+            drawerBag.takeObject({
+                position          = element.position,
+                rotation          = element.rotation,
+                callback_function = function(obj)
+                    if element.lock ~= nil then
+                        obj.setLock(element.lock)
+                    end
+                    -- Wait.time(function() obj.attachInvisibleHider('hide', false) end, 0.5)
+                end,
+                smooth            = false,
+                guid              = element.guid,
+            })
+            -- .attachInvisibleHider('hide', true)
+        end
+
+        section.drawerOpen = true
+    end
+
+    if moveCamera then
+        for _, player in ipairs(Player.getPlayers()) do
+            player.lookAt({ position = getObjectFromGUID(section.drawerZone).getPosition(), 
+                    pitch = 90, distance = 40 })
+        end
+    end
+end
+
+function Section.closeDrawer(name)
+    if not Section.SECTIONS[name] or not Section.SECTIONS[name].drawerBag then return end
+    local section = Section.SECTIONS[name]
+
+    if section.drawerOpen then
+        log('Closing ' .. name .. ' drawer.')
+
+        section.drawerButton:setImage('down-arrow')
+        section.drawerButton:setOnClick(function()
+            Section.openDrawer(name)
+        end)
+
+        -- Reset the registered content and re-register everything
+        section.drawerContent = {}
+        local drawerBag = getObjectFromGUID(section.drawerBag)
+        for _, element in ipairs(getObjectFromGUID(section.drawerZone).getObjects()) do
+            table.insert(section.drawerContent, {guid = element.getGUID(), position = element.getPosition(), rotation = element.getRotation(), lock = element.getLock()})
+
+            element.attachInvisibleHider('hide', true)
+            drawerBag.putObject(element)
+        end
+
+        section.drawerOpen = false
+    end
+end
+
+function Section.closeAllDrawers()
+    for _, section in pairs(Section.SECTIONS) do
+        Section.closeDrawer(name)
+    end
+end
+
+-- Crew is an object
+function Section.addCrewmember(crew, section, rank)
+    if not Section.SECTIONS[section] or not rank or not crew then
+        return
+    end
+
+    -- Check rank limit for this section
+    local totalMembers = 0
+    for _, member in ipairs(Section.SECTIONS[section].crew) do
+        if member.rank == rank then
+            totalMembers = totalMembers + 1
+        end
+    end
+
+    -- If there's room for one, add it otherwise return false
+    if rank == Section.RANK1 and totalMembers < 4
+        or rank == Section.RANK2 and totalMembers < 3
+        or rank == Section.RANK3 and totalMembers < 2 then
+            
+        table.insert(Section.SECTIONS[section].crew, {guid = crew.getGUID(), rank = rank})
+        return true
+    else
+        return false
+    end
+end
+
+-- Crew is an object
+function Section.removeCrewmember(crew)
+    if not crew then return false end
+
+    for _, section in pairs(Section.SECTIONS) do
+        for index, member in ipairs(section.crew) do
+            if member.guid == crew.getGUID() then
+                table.remove(section.crew, index)
+                log('Removed recruit ' .. crew.getGUID())
+
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+-- TODO: Move all crew to the appropriate drawer (open/closed?)
+function Section.readyAllCrew()
+
+end
+
+function Section.save()
+    local flatData = {}
+
+    for name, section in pairs(Section.SECTIONS) do
+        flatData[name] = {
+            crew = section.crew,
+            isReady = section.isReady,
+            drawerBag = section.drawerBag,
+            drawerContent = section.drawerContent,
+            drawerOpen = section.drawerOpen,
+        }
+    end
+
+    return flatData
+end
+
+------------------------------------------------------
+
+return {
+    addCrewmember = Section.addCrewmember,
+    closeAllDrawers = Section.closeAllDrawers,
+    init = Section.init,
+    openDrawer = Section.openDrawer,
+    closeDrawer = Section.closeDrawer,
+    removeCrewmember = Section.removeCrewmember,
+    save = Section.save,
+    ----------------------------------
+    SECURITY = Section.SECURITY,
+    SCIENCE = Section.SCIENCE,
+    RECON = Section.RECON,
+    ENGINEERING = Section.ENGINEERING,
+    RANK0 = Section.RANK0,
+    RANK1 = Section.RANK1,
+    RANK2 = Section.RANK2,
+    RANK3 = Section.RANK3,
+}
