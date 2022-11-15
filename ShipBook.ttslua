@@ -478,10 +478,10 @@ function ShipBook.globalSetup(chapter)
         end
 
         -- Move the camera to the main board
-        for _, player in ipairs(Player.getPlayers()) do
-            player.lookAt({ position = mainBoard.getPosition() + (ShipBook.CHAPTERS[chapter].cameraPosition or Vector(0, 0, 0)), 
-                    pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
-        end
+        -- for _, player in ipairs(Player.getPlayers()) do
+        --     player.lookAt({ position = mainBoard.getPosition() + (ShipBook.CHAPTERS[chapter].cameraPosition or Vector(0, 0, 0)), 
+        --             pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
+        -- end
     end
 end
 
