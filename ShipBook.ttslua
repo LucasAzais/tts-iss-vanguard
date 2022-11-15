@@ -360,6 +360,13 @@ function ShipBook.init(savedData)
     -- Starmap Scanner
     EventManager.addHandler('onObjectCollisionEnter', ShipBook.setupScannerCard)
 
+    -- Resting Crew button
+    local button = Ui.getRoot():button({
+        id = 'resting-crew-button', onClick = function() Section.readyAllCrew() end, 
+        height = 40, width = 90, text = 'Rest Crew', rectAlignment = 'UpperRight', x = -90, y = -690,
+        active = false
+    })
+
     -- TODO: Remove this once done
     -- Ui.getRoot():button({
     --     id = 'save-state', height = 50, width = 100, rectAlignment = 'UpperLeft', x = 100, y = -10, 
@@ -374,6 +381,11 @@ function ShipBook.expandMenu()
     -- Display vertical menu
     ShipBook.menu_layout:show()
     ShipBook.menu_image:show()
+
+    -- Resting crew button
+    if ShipBook.current_chapter == ShipBook.DOCKING then
+        Ui.getRoot():show('resting-crew-button')
+    end
 end
 
 function ShipBook.collapseMenu()
@@ -383,6 +395,7 @@ function ShipBook.collapseMenu()
     -- Hide vertical menu
     ShipBook.menu_layout:hide()
     ShipBook.menu_image:hide()
+    Ui.getRoot():hide('resting-crew-button')
 end
 
 function ShipBook.cleanupExistingChapter()
@@ -390,6 +403,8 @@ function ShipBook.cleanupExistingChapter()
     if getObjectFromGUID(ShipBook.SCANNER) then
         getObjectFromGUID(ShipBook.SCANNER).unregisterCollisions()
     end
+
+    Ui.getRoot():hide('resting-crew-button')
 
     -- Put the chapter stuff into the bags
     local chapterBag = ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag)
@@ -520,6 +535,7 @@ function ShipBook.setupLeaving()
 end
 
 function ShipBook.setupDocking()
+    Ui.getRoot():show('resting-crew-button')
 end
 
 function ShipBook.setupDebriefing()

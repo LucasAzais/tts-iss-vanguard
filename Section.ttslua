@@ -77,18 +77,6 @@ Section.SECTIONS = {
 ------------------------------------------------------
 
 function Section.init(savedData)
-    -- Resting Crew button
-    Section.resting_crew_root = Ui.createRootOnObject('resting-crew-root', getObjectFromGUID(Section.RESTING_CREW), 0)
-    Section.resting_crew_root.scale = '0.25 0.25 0.25'
-
-    local panel = Section.resting_crew_root:panel({
-        id = 'resting-crew-panel', width = 590, height = 190, x = 2, y = -140, z = -25
-    })
-
-    local button = panel:button({
-        id = 'resting-crew-button', onClick = function() Section.readyAllCrew() end, colors = '#00000000|#1C1C1C60|#0C0C0C60|rgba(0,0,0,0)'
-    })
-
     -- Individual Section UI and drawer
     for name, section in pairs(Section.SECTIONS) do
         local sectionBoard = getObjectFromGUID(section.board)
@@ -527,6 +515,7 @@ return {
     openDrawer = Section.openDrawer,
     closeDrawer = Section.closeDrawer,
     removeCrewmember = Section.removeCrewmember,
+    readyAllCrew = Section.readyAllCrew,
     save = Section.save,
     ----------------------------------
     SECURITY = Section.SECURITY,
