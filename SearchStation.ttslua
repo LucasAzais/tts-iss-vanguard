@@ -1,0 +1,211 @@
+local SearchStation = {}
+SearchStation.__index = SearchStation
+
+local EventManager = require('EventManager')
+local Section = require('Section')
+local Ui = require('Ui')
+local Utils = require('Utils')
+
+SearchStation.STATION = '8d2a1c'
+SearchStation.ARMORY_BAG = '29aea5'
+SearchStation.GEAR_TOKENS_BAG = 'e9a291'
+
+SearchStation.SEARCHABLE_BAGS = {
+    SearchStation.ARMORY_BAG, -- Armory
+    '3aea33', -- Unavailable Gear
+    -- 'c800d4', -- Resting Crew
+    'cb9c29', -- Missions
+    'c014a1', -- POI
+    '10cd9b', -- Global Conditions
+    '19452e', -- Injuries
+    'd657e0', -- Unique Discoveries
+    -- HACK: probably change that into a bag
+    'c5f352', -- Threat deck
+    '8217cf', -- Personel Files
+}
+
+-- SearchStation.WAIT_TIMER = 0.2
+-- SearchStation.current_wait_id = nil
+
+------------------------------------------------------
+
+function SearchStation.init()
+    -- Block search in progress
+    SearchStation.searching = false
+
+    -- Create the upgrade buttons
+    SearchStation.uiRoot = Ui.createRootOnObject('search-station-root', getObjectFromGUID(SearchStation.STATION), 0)
+    SearchStation.uiRoot.scale = '0.25 0.25 0.25'
+
+    local searchLayout = SearchStation.uiRoot:verticalLayout({
+        id = 'search-station-layout', spacing = 10, width = 600, height = 125, z = -15, y = -120
+    })
+
+    -- Search button
+    SearchStation.search_input = searchLayout:input({
+        id = 'search-station-input', text = '', active = true, fontSize = 100,
+        onValueChanged = function(_, text)
+            -- if SearchStation.current_wait_id ~= nil then
+            --     Wait.stop(SearchStation.current_wait_id)
+            --     SearchStation.current_wait_id = nil
+            -- end
+
+            -- SearchStation.current_wait_id = Wait.time(function()
+                SearchStation.displayResults(SearchStation.getResults(text))
+            -- end, SearchStation.WAIT_TIMER)
+        end
+    })
+    SearchStation.search_input.attributes.placeholder = ' '
+
+    SearchStation.result_buttons = {}
+    for i = 1, 5 do
+        SearchStation.result_buttons[i] = SearchStation.uiRoot:button({
+            id = 'result-station-button-' .. i, text = '', active = false, fontSize = 80, width = 600,
+            height = 90, z = -15, y = -130 - i * 25, colors = '#00000000|#00000088|#00000088|#00000000',
+            textColor = '#dddddd', onClick = function() end
+        })
+    end
+end
+
+function SearchStation.searchElement(value)
+    if not value or value:gsub('%s+', '') == '' then
+        return
+    end
+
+    SearchStation.searching = true
+
+    local searchStation = getObjectFromGUID(SearchStation.STATION)
+
+    for _, bagGUID in ipairs(SearchStation.SEARCHABLE_BAGS) do
+        local bag = getObjectFromGUID(bagGUID)
+
+        if bag then
+            for _, object in ipairs(bag.getObjects()) do
+                if object.name:lower():find(value:lower())
+                    or object.description:lower():find(value:lower()) then
+                    local resultElement = bag.takeObject({
+                        position          = searchStation.getPosition() + Vector(0, 1, 0),
+                        smooth            = false,
+                        guid              = object.guid,
+                    })
+
+                    -- Get gear token
+                    log(bagGUID)
+                    if bagGUID == SearchStation.ARMORY_BAG then
+                        log('in2')
+                        local name = resultElement.getDescription()
+                        local gearBag = getObjectFromGUID(SearchStation.GEAR_TOKENS_BAG)
+
+                        for _, gearToken in ipairs(gearBag.getObjects()) do
+                            log(gearToken)
+                            if gearToken.name == name then
+                                gearBag.takeObject({
+                                    position          = searchStation.getPosition() + Vector(0, 2, 0),
+                                    smooth            = false,
+                                    guid              = gearToken.guid,
+                                })
+                            end
+                        end
+                    end
+
+                    SearchStation.searching = false
+                    return
+                end
+            end
+        end
+    end
+    
+    broadcastToAll('Could not found any card with ID \'' .. value .. '\'', Color.Red)
+    SearchStation.searching = false
+end
+
+function SearchStation.getResults(searchTerm)
+    if searchTerm:gsub('%s+', '') == '' then
+        -- TODO: Hide all results
+        return
+    end
+
+    -- Get top 5 results
+    local results = {}
+    for _, bagGUID in ipairs(SearchStation.SEARCHABLE_BAGS) do
+        local bag = getObjectFromGUID(bagGUID)
+
+        if bag then
+            for _, object in ipairs(bag.getObjects()) do
+                if object.name:lower():find(searchTerm:lower()) then
+                    if not Utils.contains(results, object.name) then
+                        table.insert(results, object.name)
+                    end
+                elseif object.description:lower():find(searchTerm:lower()) then
+                    if not Utils.contains(results, object.description) then
+                        table.insert(results, object.description)
+                    end
+                end
+                
+                if #results >= 5 then
+                    break
+                end
+            end
+        end
+
+        if #results >= 5 then
+            break
+        end
+    end
+
+    -- Sort the results
+    table.sort(results, function(l1, l2) return l1 < l2 end)
+
+    return results
+end
+
+function SearchStation.displayResults(results)
+    if not results or #results == 0 then 
+        for i = 1, #SearchStation.result_buttons do
+            SearchStation.result_buttons[i]:setOnClick(nil)
+            SearchStation.result_buttons[i]:setText('')
+            SearchStation.result_buttons[i]:hide()
+        end
+    else
+        -- Display the results
+        for i = 1, math.min(#results, 5) do
+            SearchStation.result_buttons[i]:setOnClick(function()
+                SearchStation.displayResults({})
+                SearchStation.search_input:setText('')
+                SearchStation.searchElement(results[i])
+            end)
+            -- Avoid the flickering effect of setText
+            if SearchStation.result_buttons[i].attributes.active ~= true then
+                SearchStation.result_buttons[i]:show()
+            end
+            SearchStation.result_buttons[i]:setText(results[i])
+        end
+
+        -- Reset the rest of the buttons
+        for i = math.min(#results, 5) + 1, 5 do
+            SearchStation.result_buttons[i]:setOnClick(nil)
+            SearchStation.result_buttons[i]:setText(nil)
+            SearchStation.result_buttons[i]:hide()
+        end
+    end
+end
+
+function SearchStation.swapNameDescription(container, object)
+    if (container.getGUID() == '29aea5' or container.getGUID() == '3aea33') and object.type == 'Card' then
+        local tempName = object.getName()
+        object.setName(object.getDescription())
+        object.setDescription(tempName)
+    end
+    return true
+end
+
+function SearchStation.save()
+
+end
+
+------------------------------------------------------
+
+return {
+    init = SearchStation.init,
+    save = SearchStation.save
+}

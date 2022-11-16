@@ -5,11 +5,12 @@ local Constants = require('Constants')
 local EventManager = require('EventManager')
 local Section = require('Section')
 local Ui = require('Ui')
+local Utils = require('Utils')
 
 ------------------------------------------------------
 
 -- Use this to show/hide the various storage bags used for the ship book
-ShipBook.HIDE_STORAGE_BAGS = false
+ShipBook.HIDE_STORAGE_BAGS = true
 
 ShipBook.SCANNER = 'f28bbd'
 ShipBook.SHIPBOOK_ZONE = '9f8780'
@@ -35,6 +36,21 @@ ShipBook.UNLOADING = 'Unloading'
 ShipBook.MEDBAY = 'Medbay'
 ShipBook.MEMORIAL_WALL = 'Memorial Wall'
 ShipBook.SAVE_POINT = 'Save Point'
+
+ShipBook.COMMAND_BAG = 'abf775'
+ShipBook.ENERGY_BAG = '9a377e'
+ShipBook.SUCCESS_BAG = '977a77'
+
+ShipBook.COMMAND_BAG_POSITION = {-44.52, 1.47, 4.74}
+ShipBook.ENERGY_BAG_POSITION = {-44.52, 1.46, -0.13}
+ShipBook.SUCCESS_BAG_POSITION = {-44.52, 1.46, -5.36}
+
+ShipBook.IGNORED_OBJECTS = {
+    Constants.TABLE_GUID,
+    ShipBook.COMMAND_BAG,
+    ShipBook.ENERGY_BAG,
+    ShipBook.SUCCESS_BAG
+}
 
 function ShipBook.init(savedData)
     -- Initialise the functions
@@ -242,8 +258,9 @@ function ShipBook.init(savedData)
 
     if not savedData.saved_positions or not savedData.saved_positions[ShipBook.STARMAP] then
         ShipBook.CHAPTERS[ShipBook.STARMAP].savedPositions = {
-            { guid = '2a4403', position = {17.70, 1.48, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '2a4403', position = {-18.25, 1.48, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
             { guid = '0b11de', position = {0.00, 1.48, 15.11}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '673467', position = {30.85, 1.48, 0.00}, rotation = {0.00, 90.00, 0.00}, lock = true},
         }
     end
 
@@ -251,6 +268,7 @@ function ShipBook.init(savedData)
         ShipBook.CHAPTERS[ShipBook.RESEARCH].savedPositions = {
             { guid = '23a032', position = {2.66, 1.54, 7.59}, rotation = {0.00, 180.00, 0.00}, lock = false},
             { guid = 'b49ff3', position = {-7.62, 1.47, 16.48}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = 'c20953', position = {2.76, 1.48, 16.48}, rotation = {0.00, 180.00, 0.00}, lock = true},
         }
     end
 
@@ -273,8 +291,7 @@ function ShipBook.init(savedData)
 
     if not savedData.saved_positions or not savedData.saved_positions[ShipBook.SITUATION_ROOM] then
         ShipBook.CHAPTERS[ShipBook.SITUATION_ROOM].savedPositions = {
-            { guid = '87baa6', position = {-3.67, 1.48, 15.05}, rotation = {0.00, 180.00, 0.00}, lock = true},
-            { guid = '94c459', position = {3.86, 1.48, 15.05}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '94c459', position = {0.00, 1.48, 15.05}, rotation = {0.00, 180.00, 0.00}, lock = true},
         }
     end
 
@@ -297,7 +314,7 @@ function ShipBook.init(savedData)
 
     if not savedData.saved_positions or not savedData.saved_positions[ShipBook.UNLOADING] then
         ShipBook.CHAPTERS[ShipBook.UNLOADING].savedPositions = {
-            { guid = '7e55a9', position = {-39.76, 1.47, 7.37}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            -- { guid = '7e55a9', position = {-39.76, 1.47, 7.37}, rotation = {0.00, 180.00, 0.00}, lock = true},
         }
     end
 
@@ -421,7 +438,7 @@ function ShipBook.cleanupExistingChapter()
         ShipBook.CHAPTERS[ShipBook.current_chapter].savedPositions = {}
 
         for _, object in ipairs(getObjectFromGUID(ShipBook.SHIPBOOK_ZONE).getObjects()) do
-            if object.getGUID() ~= Constants.TABLE_GUID then
+            if not Utils.contains(ShipBook.IGNORED_OBJECTS, object.getGUID()) then
                 -- Save the GUID and position of all objects (except the main board) 
                 if object.getGUID() ~= ShipBook.CHAPTERS[ShipBook.current_chapter].mainBoard then
                     table.insert(ShipBook.CHAPTERS[ShipBook.current_chapter].savedPositions, {
@@ -444,6 +461,8 @@ function ShipBook.cleanupExistingChapter()
         -- Then put the chapter bag into the shipbook bag
         getObjectFromGUID(ShipBook.SHIPBOOK_BAG).putObject(chapterBag)
     end
+
+    ShipBook.current_chapter = nil
 end
 
 function ShipBook.globalSetup(chapter)
@@ -627,9 +646,47 @@ end
 function ShipBook.startPhase()
     ShipBook.toggle_button:show()
     ShipBook.expandMenu()
+
+    -- Add the token bags
+    local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
+    shipbookBag.takeObject({
+        position          = ShipBook.COMMAND_BAG_POSITION,
+        callback_function = function(obj)
+            obj.setLock(true)
+        end,
+        smooth            = false,
+        guid              = ShipBook.COMMAND_BAG,
+    })
+
+    shipbookBag.takeObject({
+        position          = ShipBook.ENERGY_BAG_POSITION,
+        callback_function = function(obj)
+            obj.setLock(true)
+        end,
+        smooth            = false,
+        guid              = ShipBook.ENERGY_BAG,
+    })
+
+    shipbookBag.takeObject({
+        position          = ShipBook.SUCCESS_BAG_POSITION,
+        callback_function = function(obj)
+            obj.setLock(true)
+        end,
+        smooth            = false,
+        guid              = ShipBook.SUCCESS_BAG,
+    })
 end
 
 function ShipBook.endPhase()
+    local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
+    
+    getObjectFromGUID(ShipBook.COMMAND_BAG).attachInvisibleHider('hide', true)
+    shipbookBag.putObject(getObjectFromGUID(ShipBook.COMMAND_BAG))
+    getObjectFromGUID(ShipBook.ENERGY_BAG).attachInvisibleHider('hide', true)
+    shipbookBag.putObject(getObjectFromGUID(ShipBook.ENERGY_BAG))
+    getObjectFromGUID(ShipBook.SUCCESS_BAG).attachInvisibleHider('hide', true)
+    shipbookBag.putObject(getObjectFromGUID(ShipBook.SUCCESS_BAG))
+
     ShipBook.cleanupExistingChapter()
     ShipBook.collapseMenu()
     ShipBook.toggle_button:hide()

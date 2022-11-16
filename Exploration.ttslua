@@ -5,7 +5,7 @@ local Constants = require('Constants')
 local EventManager = require('EventManager')
 local Ui = require('Ui')
 
-Exploration.HIDE_STORAGE_BAGS = false
+Exploration.HIDE_STORAGE_BAGS = true
 
 Exploration.PLANETOPEDIA = '10e2ca'
 Exploration.EXPLORATION_ZONE = '9f8780'

@@ -6,7 +6,7 @@ local EventManager = require('EventManager')
 local Ui = require('Ui')
 local Utils = require('Utils')
 
-Section.HIDE_STORAGE_BAGS = false
+Section.HIDE_STORAGE_BAGS = true
 
 -- Colors
 Section.GREEN_COLOR = '#2DC12D'
@@ -32,7 +32,7 @@ Section.SECTIONS = {
         name = Section.SECURITY,
         board = '07b6c0',
         turnToken = 'ada930',
-        color = Color(61/255, 134/255, 167/255), -- '#3D86A7',
+        color = Color(86/255, 161/255, 182/255), -- '#56a1b6',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
         drawerContent = { { guid = '1e73e3', position = {-48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = 'ab5f9e',
@@ -43,7 +43,7 @@ Section.SECTIONS = {
         name = Section.SCIENCE,
         board = 'cf71e9',
         turnToken = '604883',
-        color = Color(90/255, 41/255, 155/255), -- '#5A299B'
+        color = Color(107/255, 93/255, 144/255), -- '#6b5d90'
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
         drawerContent = { { guid = '12be99', position = {-16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '9e2f6c',
@@ -54,7 +54,7 @@ Section.SECTIONS = {
         name = Section.RECON,
         board = '12ef80',
         turnToken = '7ed433',
-        color = Color(172/255, 72/255, 142/255), -- '#AB488E'
+        color = Color(183/255, 102/255, 119/255), -- '#b76677'
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
         drawerContent = { { guid = 'd84252', position = {16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '72e714',
@@ -65,7 +65,7 @@ Section.SECTIONS = {
         name = Section.ENGINEERING,
         board = 'e5a559',
         turnToken = '722590',
-        color = Color(169/255, 151/255, 42/255), -- '#A9972A'
+        color = Color(189/255, 171/255, 85/255), -- '#BDAB55'
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
         drawerContent = { { guid = '051866', position = {48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '877a3b',

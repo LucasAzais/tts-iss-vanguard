@@ -272,6 +272,10 @@ function Ui:toggleButton(params)
         toggle.attributes.text = params.text
     end
 
+    if params.textColor ~= nil then
+        toggle.attributes.textColor = params.textColor
+    end
+
     if params.fontSize ~= nil then
         toggle.attributes.fontSize = params.fontSize
     end
@@ -317,9 +321,10 @@ function Ui:button(params)
     -- button.rotation = '0 0 0'
     -- button.scale = self.scale
 
-    button.attributes.text = params.text
-    button.attributes.fontSize = params.fontSize
+    button.attributes.text = params.text or nil
+    button.attributes.fontSize = params.fontSize or 14
     button.attributes.colors = params.colors or '#FFFFFF|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
+    button.attributes.textColor = params.textColor or '#323232'
     -- button.attributes.image = params.image or nil
     -- button.attributes.icon = params.icon or nil
 
@@ -503,12 +508,19 @@ end
 
 function Ui:setWidth(value) self:setAttribute('width', 'number', value ~= nil and value or '100%') end
 function Ui:setHeight(value) self:setAttribute('height', 'number', value ~= nil and value or '100%') end
-function Ui:setText(value) self:setAttribute('text', 'string', value ~= nil and tostring(value) or '') end
+function Ui:setText(value) 
+    self:setAttribute('text', 'string', value ~= nil and tostring(value) or '') 
+    self:setColor(self.attributes.color) 
+    self:setColors(self.attributes.colors) 
+    self:setTextColor(self.attributes.textColor) 
+end
+function Ui:setTextColor(value) self:setAttribute('textColor', 'string', value ~= nil and tostring(value) or nil, true) end
+function Ui:setColor(value) self:setAttribute('color', 'string', value ~= nil and tostring(value) or nil, true) end
+function Ui:setColors(value) self:setAttribute('colors', 'string', value ~= nil and tostring(value) or nil, true) end
 function Ui:setOffsetXY(offsetXY) self:setAttribute('offsetXY', 'string', offsetXY) end
 function Ui:setActive(active) self:setAttribute('active', 'boolean', active) end
 function Ui:setImage(value) self:setAttribute('image', 'string', value ~= nil and tostring(value) or '') end
 function Ui:setIcon(value) self:setAttribute('icon', 'string', value ~= nil and tostring(value) or '') end
-function Ui:setColor(value) self:setAttribute('color', 'string', value ~= nil and tostring(value) or '') end
 
 -- This doesn't need the setAttribute because we've already registeredOnClick initially, and that calls self.onClick instead of self.attributes.onClick
 function Ui:setOnClick(onClick)

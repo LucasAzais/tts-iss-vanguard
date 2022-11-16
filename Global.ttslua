@@ -19,18 +19,20 @@
 
 -- TODO: Change upgrade station board
 -- TODO: Change upgrade station icons (transparent?)
--- TODO: Add crewmember tag and snap point tags on the drawer
 
 -- TODO: Add empty bridge cards tray
 -- TODO: Situations needed on the bridge
 
 -- TODO: Add lander board snap points
+-- TODO: Resize unloading {13.12, 1.00, 13.12}
+-- TODO: Search inside the ship book pls
 
 local Constants = require('Constants')
 local Cycle = require('Cycle')
 local EventManager = require('EventManager')
 local Exploration = require('Exploration')
 local Log = require('Log')
+local SearchStation = require('SearchStation')
 local Section = require('Section')
 local ShipBook = require('ShipBook')
 local Ui = require('Ui')
@@ -55,11 +57,12 @@ function onLoad(script_state)
 
     -- Parse save data
     local savedData = JSON.decode(script_state) or {}
-    savedData = {}
-    log(savedData)
+    -- savedData = {}
+    -- log(savedData)
 
     Log.init()
     Ui.init()
+    SearchStation.init()
     ShipBook.init(savedData.ship_book or {})
     Exploration.init(savedData.exploration or {})
     Section.init(savedData.sections or {})

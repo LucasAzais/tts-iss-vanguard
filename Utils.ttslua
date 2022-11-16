@@ -21,7 +21,6 @@ end
 -- Look for a single tag
 function Utils.contains(tags, searchedTag)
     if tags == nil then return false end
-
     for _, tag in ipairs(tags) do
         if tag == searchedTag then
             return true
