@@ -198,10 +198,10 @@ function ShipBook.init(savedData)
 
     -- Hide the chapter bags (visuals and sound)
     getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
-    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent("AudioSource").set('mute', ShipBook.HIDE_STORAGE_BAGS)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
     if ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag) then
         getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
-        getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).getComponent("AudioSource").set('mute', ShipBook.HIDE_STORAGE_BAGS)
+        getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
     end
 
     -- Add saved data to the CHAPTERS
@@ -483,7 +483,7 @@ function ShipBook.globalSetup(chapter)
     })
 
     chapterBag.attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
-    chapterBag.getComponent("AudioSource").set('mute', ShipBook.HIDE_STORAGE_BAGS)
+    chapterBag.getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
 
     if ShipBook.CHAPTERS[chapter].mainBoard ~= '' then
         local mainBoard = chapterBag.takeObject({
@@ -692,6 +692,22 @@ function ShipBook.endPhase()
     ShipBook.toggle_button:hide()
 end
 
+function ShipBook.getCurrentChapter()
+    return ShipBook.current_chapter
+end
+
+function ShipBook.getSearchableChapter(objectGUID)
+    if not objectGUID then return nil end
+
+    for name, chapter in pairs(ShipBook.CHAPTERS) do
+        for _ , element in ipairs(chapter.savedPositions or {}) do
+            if element.guid == objectGUID then
+                return name, getObjectFromGUID(chapter.bag)
+            end
+        end
+    end
+end
+
 function ShipBook.save()
     local flatData = {
         saved_positions = {},
@@ -712,6 +728,10 @@ return {
     init = ShipBook.init,
     save = ShipBook.save,
     cleanupExistingChapter = ShipBook.cleanupExistingChapter,
+    getCurrentChapter = ShipBook.getCurrentChapter,
+    getSearchableChapter = ShipBook.getSearchableChapter,
     startPhase = ShipBook.startPhase,
     endPhase = ShipBook.endPhase,
+
+    SHIPBOOK_BAG = ShipBook.SHIPBOOK_BAG,
 }

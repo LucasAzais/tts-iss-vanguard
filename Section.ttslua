@@ -195,7 +195,7 @@ function Section.init(savedData)
         end
 
         drawerBag.attachInvisibleHider('hide', Section.HIDE_STORAGE_BAGS)
-        drawerBag.getComponent("AudioSource").set('mute', Section.HIDE_STORAGE_BAGS)
+        drawerBag.getComponent('AudioSource').set('mute', Section.HIDE_STORAGE_BAGS)
         -- end
 
         section.uiRoot = Ui.createRootOnObject(name .. '-section-root', sectionBoard, 0)

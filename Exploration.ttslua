@@ -15,7 +15,7 @@ Exploration.EXPLORATION_BAG = '19a0f8'
 
 function Exploration.init(savedData)
     getObjectFromGUID(Exploration.EXPLORATION_BAG).attachInvisibleHider('hide', Exploration.HIDE_STORAGE_BAGS)
-    getObjectFromGUID(Exploration.EXPLORATION_BAG).getComponent("AudioSource").set('mute', Exploration.HIDE_STORAGE_BAGS)
+    getObjectFromGUID(Exploration.EXPLORATION_BAG).getComponent('AudioSource').set('mute', Exploration.HIDE_STORAGE_BAGS)
 
     Exploration.saved_positions = savedData.saved_positions or {}
 end

@@ -60,6 +60,9 @@ function onLoad(script_state)
     UpgradeStation.init()
     Cycle.init(savedData.cycle or {})
     Ui.globalRefresh()
+
+    -- In case things were saved while waiting for the search to close
+    SearchStation.putAwaySearchables(false)
 end
 
 function onSave()
