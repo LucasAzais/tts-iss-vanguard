@@ -6,25 +6,15 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
--- TODO: Rest all crew at once
 -- TODO: Consider hiding the ShipBook elements while they load
 
 -- TODO: Fix card size (section cards in particular) + tutorial cards size and order (unique discovery, mission etc...)
-
--- TODO: POI scale = {1.99, 1.00, 1.99}?
--- HACK: POI scale = {2.05, 1.00, 2.05}
--- HACK: Crew for Board {2.93, 1.00, 2.93}
--- HACK: Unique Descovery back {1.36, 1.00, 1.36}
--- HACK: Unique Descovery front {1.87, 1.00, 1.87}
 
 -- TODO: Change upgrade station board
 -- TODO: Change upgrade station icons (transparent?)
 
 -- TODO: Add empty bridge cards tray
--- TODO: Situations needed on the bridge
 
--- TODO: Add lander board snap points
--- TODO: Resize unloading {13.12, 1.00, 13.12}
 -- TODO: Search inside the ship book pls
 
 local Constants = require('Constants')
@@ -36,6 +26,7 @@ local SearchStation = require('SearchStation')
 local Section = require('Section')
 local ShipBook = require('ShipBook')
 local Ui = require('Ui')
+local Utils = require('Utils')
 local UpgradeStation = require('UpgradeStation')
 
 -- book = {7.27, 1.00, 7.27}
