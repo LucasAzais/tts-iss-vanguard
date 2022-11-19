@@ -3,6 +3,8 @@ local EventManager = {}
 EventManager.handlers = {}
 EventManager.globalHandlers = {}
 
+EventManager.ON_CHAPTER_CLEANUP = 'onChapterCleanup'
+
 ------------------------------------------------------
 
 function EventManager.addHandler(event, handler)
@@ -45,6 +47,19 @@ function EventManager.wipeHandlers(event)
     EventManager.handlers[event] = nil
 
     _G[event] = nil
+end
+
+function EventManager.fireEvent(event, ...)
+    assert(event ~= nil and 'string' == type(event))
+
+    local globalHandler = EventManager.globalHandlers[event]
+    if globalHandler then
+        globalHandler(...)
+    end
+
+    for _, handler in ipairs(EventManager.handlers[event] or {}) do
+        handler(...)
+    end
 end
 
 ------------------------------------------------------

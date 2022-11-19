@@ -416,6 +416,8 @@ function ShipBook.collapseMenu()
 end
 
 function ShipBook.cleanupExistingChapter()
+    EventManager.fireEvent(EventManager.ON_CHAPTER_CLEANUP)
+
     -- TODO: Possibly move this into separate setup/cleanup functions?
     if getObjectFromGUID(ShipBook.SCANNER) then
         getObjectFromGUID(ShipBook.SCANNER).unregisterCollisions()
@@ -475,12 +477,15 @@ function ShipBook.globalSetup(chapter)
     ShipBook.current_chapter = chapter
 
     local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
-    local chapterBag = shipbookBag.takeObject({
-        position          = ShipBook.TEMPORARY_BAG_LOCATION,
-        callback_function = function(obj) obj.setLock(true) end,
-        smooth            = false,
-        guid              = ShipBook.CHAPTERS[chapter].bag,
-    })
+    local chapterBag = getObjectFromGUID(ShipBook.CHAPTERS[chapter].bag)
+    if not chapterBag then
+        chapterBag = shipbookBag.takeObject({
+            position          = ShipBook.TEMPORARY_BAG_LOCATION,
+            callback_function = function(obj) obj.setLock(true) end,
+            smooth            = false,
+            guid              = ShipBook.CHAPTERS[chapter].bag,
+        })
+    end
 
     chapterBag.attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
     chapterBag.getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
@@ -693,7 +698,11 @@ function ShipBook.endPhase()
 end
 
 function ShipBook.getCurrentChapter()
-    return ShipBook.current_chapter
+    if ShipBook.current_chapter then
+        return ShipBook.CHAPTERS[ShipBook.current_chapter]
+    else
+        return nil
+    end
 end
 
 function ShipBook.getSearchableChapter(objectGUID)
@@ -706,6 +715,8 @@ function ShipBook.getSearchableChapter(objectGUID)
             end
         end
     end
+
+    return nil, nil
 end
 
 function ShipBook.save()
@@ -734,4 +745,5 @@ return {
     endPhase = ShipBook.endPhase,
 
     SHIPBOOK_BAG = ShipBook.SHIPBOOK_BAG,
+    TEMPORARY_BAG_LOCATION = ShipBook.TEMPORARY_BAG_LOCATION,
 }

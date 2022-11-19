@@ -6,6 +6,13 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
+-- TODO: Rename discoveries U01, U02, ...
+-- TODO: Ship book page 24 -> add to the planetary exploration?
+-- TODO: Resize mission cards
+-- TODO: Lead bag -> should be random!
+-- TODO: Same for event (+ move the stack???)
+-- TODO: Rank up cards might be too big (cf lander board slot)
+
 -- TODO: Consider hiding the ShipBook elements while they load
 
 -- TODO: Fix card size (section cards in particular) + tutorial cards size and order (unique discovery, mission etc...)
@@ -53,16 +60,13 @@ function onLoad(script_state)
 
     Log.init()
     Ui.init()
-    SearchStation.init()
     ShipBook.init(savedData.ship_book or {})
     Exploration.init(savedData.exploration or {})
     Section.init(savedData.sections or {})
     UpgradeStation.init()
     Cycle.init(savedData.cycle or {})
+    SearchStation.init()
     Ui.globalRefresh()
-
-    -- In case things were saved while waiting for the search to close
-    SearchStation.putAwaySearchables(false)
 end
 
 function onSave()
@@ -90,6 +94,7 @@ function loadState(params)
 
         -- Reset handlers
         EventManager.wipeHandlers('onObjectCollisionEnter')
+        EventManager.wipeHandlers(EventManager.ON_CHAPTER_CLEANUP)
 
         -- Reload the game
         Wait.condition(function()

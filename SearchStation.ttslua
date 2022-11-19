@@ -11,7 +11,7 @@ SearchStation.STATION = '8d2a1c'
 SearchStation.ARMORY_BAG = '29aea5'
 SearchStation.GEAR_TOKENS_BAG = 'e9a291'
 
-SearchStation.CLEANUP_TIMER = 10
+SearchStation.CLEANUP_TIMER = 3
 SearchStation.HIDE_STORAGE_BAGS = true
 -- SearchStation.current_wait_id = nil
 
@@ -54,6 +54,14 @@ function SearchStation.init()
             textColor = '#dddddd', onClick = function() end
         })
     end
+
+    -- Event handler to stop searching
+    EventManager.addHandler(EventManager.ON_CHAPTER_CLEANUP, function()
+        SearchStation.putAwaySearchables(true)
+    end)
+
+    -- In case things were saved while waiting for the search to close
+    SearchStation.putAwaySearchables(false)
 end
 
 
@@ -63,38 +71,78 @@ function SearchStation.pullElement(params)
     end
 
     local searchStation = getObjectFromGUID(SearchStation.STATION)
-    local cardTray = getObjectFromGUID(params.cardTrayGuid)
-    local resultElement = cardTray.takeObject({
-        position          = searchStation.getPosition() + Vector(0, 1, 0),
-        smooth            = false,
-        guid              = params.guid,
-    })
-    -- FIXME: some objects have the wrong rotation. Fix it to {0, 180, 0}?
 
-    -- Get gear token
-    if params.cardTrayGuid == SearchStation.ARMORY_BAG then
-        local name = resultElement.getDescription()
-        local gearBag = getObjectFromGUID(SearchStation.GEAR_TOKENS_BAG)
+    -- Find the chapter and card tray bags
+    local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
+    local chapterBag = nil
 
-        for _, gearToken in ipairs(gearBag.getObjects()) do
-            if gearToken.name == name then
-                gearBag.takeObject({
-                    position          = searchStation.getPosition() + Vector(0, 2, 0),
-                    smooth            = false,
-                    guid              = gearToken.guid,
-                })
-            end
+    if params.chapterGuid then
+        chapterBag = getObjectFromGUID(params.chapterGuid)
+        if not chapterBag then
+            chapterBag = shipbookBag.takeObject({
+                position          = ShipBook.TEMPORARY_BAG_LOCATION,
+                callback_function = function(obj)
+                    obj.setLock(true)
+                    obj.attachInvisibleHider('hide', SearchStation.HIDE_STORAGE_BAGS)
+                    obj.getComponent('AudioSource').set('mute', SearchStation.HIDE_STORAGE_BAGS)
+                end,
+                smooth            = false,
+                guid              = params.chapterGuid,
+            })
         end
     end
-    
-    if not resultElement then
-        broadcastToAll('Could not found any card with ID \'' .. params.id .. '\' in card tray \'' .. params.cardTrayGuid .. '\'', Color.Red)
-    end
+
+    Wait.frames(function()
+        local cardTray = getObjectFromGUID(params.cardTrayGuid)
+        if not cardTray and chapterBag then
+            cardTray = chapterBag.takeObject({
+                position          = Vector(ShipBook.TEMPORARY_BAG_LOCATION) + Vector(-5, 0, 0),
+                callback_function = function(obj)
+                    obj.setLock(true)
+                    obj.attachInvisibleHider('hide', SearchStation.HIDE_STORAGE_BAGS)
+                    obj.getComponent('AudioSource').set('mute', SearchStation.HIDE_STORAGE_BAGS)
+                end,
+                smooth            = false,
+                guid              = params.cardTrayGuid,
+            })
+        end
+
+        Wait.frames(function()
+            local resultElement = cardTray.takeObject({
+                position          = searchStation.getPosition() + Vector(0, 1, 0),
+                smooth            = false,
+                guid              = params.guid,
+            })
+            -- FIXME: some objects have the wrong rotation. Fix it to {0, 180, 0}?
+
+            -- Get gear token
+            if params.cardTrayGuid == SearchStation.ARMORY_BAG then
+                local name = resultElement.getDescription()
+                local gearBag = getObjectFromGUID(SearchStation.GEAR_TOKENS_BAG)
+
+                for _, gearToken in ipairs(gearBag.getObjects()) do
+                    if gearToken.name == name then
+                        gearBag.takeObject({
+                            position          = searchStation.getPosition() + Vector(0, 2, 0),
+                            smooth            = false,
+                            guid              = gearToken.guid,
+                        })
+                    end
+                end
+            end
+            
+            SearchStation.putAwaySearchables(false)
+            if not resultElement then
+                broadcastToAll('Could not found any card with ID \'' .. params.id .. '\' in card tray \'' .. params.cardTrayGuid .. '\'', Color.Red)
+            end
+
+        end, 1)
+    end, 1)
 end
 
 function SearchStation.getResults(searchTerm)
     if searchTerm:gsub('%s+', '') == '' then
-        -- TODO: Hide all results
+        SearchStation.displayResults({})
         return
     end
 
@@ -151,24 +199,24 @@ function SearchStation.getResults(searchTerm)
         Wait.frames(function()
             for _, cardTray in ipairs(getObjectsWithTag('searchable')) do
                 for _, finalObject in ipairs(cardTray.getObjects()) do
+                    local name, container = ShipBook.getSearchableChapter(cardTray.getGUID())
+                    local chapterGUID = nil
+                    if container ~= nil then chapterGUID = container.getGUID() end
+
                     if finalObject.name:lower():find(searchTerm:lower()) then
-                        if not Utils.contains(results, finalObject.name) then
-                            table.insert(results, {
-                                id = finalObject.name,
-                                guid = finalObject.guid,
-                                chapterGuid = ShipBook.getSearchableChapter(finalObject.guid),
-                                cardTrayGuid = cardTray.getGUID(),
-                            })
-                        end
+                        table.insert(results, {
+                            id = finalObject.name,
+                            guid = finalObject.guid,
+                            chapterGuid = chapterGUID,
+                            cardTrayGuid = cardTray.getGUID(),
+                        })
                     elseif finalObject.description:lower():find(searchTerm:lower()) then
-                        if not Utils.contains(results, finalObject.description) then
-                            table.insert(results, {
-                                id = finalObject.description,
-                                guid = finalObject.guid,
-                                chapterGuid = ShipBook.getSearchableChapter(finalObject.guid),
-                                cardTrayGuid = cardTray.getGUID()
-                            })
-                        end
+                        table.insert(results, {
+                            id = finalObject.description,
+                            guid = finalObject.guid,
+                            chapterGuid = chapterGUID,
+                            cardTrayGuid = cardTray.getGUID()
+                        })
                     end
 
                     if #results >= 5 then
@@ -185,16 +233,23 @@ function SearchStation.getResults(searchTerm)
                 SearchStation.putAwaySearchables()
             end, SearchStation.CLEANUP_TIMER)
             SearchStation.displayResults(results)
-        end, 1)
-    end, 1)
+        end, 5)
+    end, 5)
 end
 
-function SearchStation.displayResults(results)
-    if not results or #results == 0 then 
+function SearchStation.displayResults(results, stopTimer)
+    if SearchStation.cleanup_search_timer ~= nil and stopTimer then
+        Wait.stop(SearchStation.cleanup_search_timer)
+    end
+
+    if not results or #results == 0 then
         for i = 1, #SearchStation.result_buttons do
             SearchStation.result_buttons[i]:setOnClick(nil)
             SearchStation.result_buttons[i]:setText('')
             SearchStation.result_buttons[i]:hide()
+        end
+        if not results then
+            SearchStation.search_input:setText('')
         end
     else
         -- Sort the results
@@ -203,13 +258,9 @@ function SearchStation.displayResults(results)
         -- Display the results
         for i = 1, math.min(#results, 5) do
             SearchStation.result_buttons[i]:setOnClick(function()
-                if SearchStation.cleanup_search_timer then
-                    Wait.stop(SearchStation.cleanup_search_timer)
-                end
-                SearchStation.displayResults({})
+                SearchStation.displayResults({}, true)
                 SearchStation.search_input:setText('')
                 SearchStation.pullElement(results[i])
-                SearchStation.putAwaySearchables(false)
             end)
             -- Avoid the flickering effect of setText
             if SearchStation.result_buttons[i].attributes.active ~= true then
@@ -251,7 +302,7 @@ function SearchStation.putAwaySearchables(updateDisplayResults)
         local _, chapterBag = ShipBook.getSearchableChapter(object.getGUID())
 
         -- Some searchables don't go into chapter bags
-        if chapterBag then
+        if chapterBag and (ShipBook.getCurrentChapter() == nil or ShipBook.getCurrentChapter().bag ~= chapterBag.getGUID()) then
             chapterBag.putObject(object)
         end
     end
@@ -259,7 +310,7 @@ function SearchStation.putAwaySearchables(updateDisplayResults)
     -- Put each chapter bag in the ship book bag
     local shipbook = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
     for _, chapterBag in pairs(getObjectsWithTag('chapterBag')) do
-        if chapterBag.getName() ~= ShipBook.getCurrentChapter() then
+        if ShipBook.getCurrentChapter() == nil or chapterBag.getGUID() ~= ShipBook.getCurrentChapter().bag then
             shipbook.putObject(chapterBag)
         end
     end
