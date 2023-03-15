@@ -1,0 +1,3 @@
+function closeAndDestroy()
+    self.destruct()
+end

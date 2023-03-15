@@ -214,6 +214,7 @@ function Section.init(savedData)
             id = name .. '-section-action1', onClick = function() Section.useAction(section.action1, name) end, width = 300, height = 120, x=-300, y=-70,
             text = '1', fontSize = 100
         })
+        section.action1.actionNumber = 1
         section.action1.attributes.fontStyle = 'Bold'
         section.action1.attributes.color = Section.GREEN_COLOR
         section.action1.available = true
@@ -222,13 +223,14 @@ function Section.init(savedData)
             id = name .. '-section-action2', onClick = function() Section.useAction(section.action2, name) end, width = 300, height = 120, x=50, y=-70,
             text = '2', fontSize = 100
         })
+        section.action2.actionNumber = 2
         section.action2.attributes.fontStyle = 'Bold'
         section.action2.attributes.color = Section.GREEN_COLOR
         section.action2.available = true
 
         section.ready = panel:button({
             id = name .. '-section-ready', onClick = function() Section.ready(name) end, width = 650, height = 120, x=-130, y=-70,
-            text = 'Ready', fontSize = 100, active = false
+            text = 'Not Ready', fontSize = 100, active = false
         })
         if section.isReady then
             section.ready.attributes.color = Section.ORANGE_COLOR
@@ -249,9 +251,11 @@ function Section.useAction(button, name)
 
     if button.available then
         button:setColor(Section.RED_COLOR)
+        button:setText('X')
         section.availableActions = section.availableActions - 1
     else
         button:setColor(Section.GREEN_COLOR)
+        button:setText(button.actionNumber)
         section.availableActions = section.availableActions + 1
     end
     
@@ -262,15 +266,16 @@ function Section.useAction(button, name)
         broadcastToAll(name .. ' must draw an Event.', Section.SECTIONS[name].color)
 
         -- Replace the buttons
-        section.uiRoot:hide(name .. '-section-action1')
-        section.uiRoot:hide(name .. '-section-action2')
-        section.uiRoot:show(name .. '-section-ready')
+        section.action1:hide()
+        section.action2:hide()
+        section.ready:show()
     end
 end
 
 function Section.ready(name)
     Section.SECTIONS[name].isReady = true
     Section.SECTIONS[name].ready:setColor(Section.ORANGE_COLOR)
+    Section.SECTIONS[name].ready:setText('Ready')
 
     local allReady = true
     for _, section in pairs(Section.SECTIONS) do
@@ -288,15 +293,18 @@ function Section.resetRound()
         section.availableActions = 2
         section.isReady = false
 
-        section.uiRoot:hide(section.name .. '-section-ready')
-        section.uiRoot:show(section.name .. '-section-action1')
-        section.uiRoot:show(section.name .. '-section-action2')
+        section.ready:hide()
+        section.action1:show()
+        section.action2:show()
 
         section.action1:setColor(Section.GREEN_COLOR)
+        section.action1:setText(section.action1.actionNumber)
         section.action1.available = true
         section.action2:setColor(Section.GREEN_COLOR)
+        section.action2:setText(section.action2.actionNumber)
         section.action2.available = true
         section.ready:setColor(Section.RED_COLOR)
+        section.ready:setText('Not Ready')
     end
 
     broadcastToAll('The away team can select a new start player.', Color.Blue)

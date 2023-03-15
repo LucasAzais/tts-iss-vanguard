@@ -1,0 +1,4 @@
+<Panel width="1000" height="500" color='#0A0A0A' position="0 0 -30" rotation="0 0 180" scale="0.333 0.333 1">
+    <Text color="#F0F0F0" rectAlignment="UpperCenter" width="1000" height="400" fontSize="60">Search for a specific card anywhere in the game with the above text box and it will be spawned here.</Text>
+    <Button rectAlignment="LowerCenter" offsetXY="0 60" width="300" height="100" fontSize="50" onClick="closeAndDestroy">Understood</Button>
+</Panel>

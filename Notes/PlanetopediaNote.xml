@@ -1,0 +1,10 @@
+<Panel width="4000" height="2000" color='#0A0A0A' position="0 0 -30" rotation="0 0 180" scale="0.333 0.333 1">
+    <Text color="#F0F0F0" rectAlignment="UpperCenter" fontSize="100" offsetXY="0 150" width="3800">- Use the button in the top left of the screen to swap between the Planetopedia and the Ship Book.
+    
+    - Their state will be saved so feel free to swap between the two at any point during the game if you need to check a specific card or effect that's been added to the ship binder.
+    
+    - In the ship book, use the right hand side index to swap between the various sections of the binder.
+    
+    - The various help messages around the table will be permanently removed once you click on "Understood" and save this mod.</Text>
+    <Button rectAlignment="LowerCenter" offsetXY="0 150" width="800" height="200" fontSize="100" onClick="closeAndDestroy">Understood</Button>
+</Panel>
