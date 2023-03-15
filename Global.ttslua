@@ -6,23 +6,24 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
--- TODO: Rename discoveries U01, U02, ...
+-- TODO: Discovery Decks need to be available during Research, Starmap and Memorial Wall
+-- Move decks them to the side of the book, left of the command/energy tokens, then move then to their place in the planet book
+
+-- TODO: Need scripting for add-on facility
+
+
 -- TODO: Ship book page 24 -> add to the planetary exploration?
--- TODO: Resize mission cards
--- TODO: Lead bag -> should be random!
--- TODO: Same for event (+ move the stack???)
--- TODO: Rank up cards might be too big (cf lander board slot)
 
 -- TODO: Consider hiding the ShipBook elements while they load
 
 -- TODO: Fix card size (section cards in particular) + tutorial cards size and order (unique discovery, mission etc...)
 
--- TODO: Change upgrade station board
--- TODO: Change upgrade station icons (transparent?)
+-- TODO: Change upgrade station icons (more transparent?)
+-- TODO: Add empty bridge cards tray?
+-- TODO: Add secret envelope section
+-- TODO: Add a "leave planet" button?
 
--- TODO: Add empty bridge cards tray
-
--- TODO: Search inside the ship book pls
+-- Original bag locations: Ship = {-2.79, 1.33, 89.60}, planet = {0.24, 1.30, 89.60}
 
 local Constants = require('Constants')
 local Cycle = require('Cycle')
@@ -36,14 +37,13 @@ local Ui = require('Ui')
 local Utils = require('Utils')
 local UpgradeStation = require('UpgradeStation')
 
--- book = {7.27, 1.00, 7.27}
--- 
-
 ------------------------------------------------------
 
 local NOT_INTERACTABLE = {
     
 }
+
+local SHOW_ALL_BAGS = false
 
 function onLoad(script_state)
     math.randomseed(os.time())
@@ -67,6 +67,17 @@ function onLoad(script_state)
     Cycle.init(savedData.cycle or {})
     SearchStation.init()
     Ui.globalRefresh()
+
+    -- Make a button on the trash to show all bags
+    local trashObject = getObjectFromGUID(Constants.TRASH_GUID)
+    trashObject.createButton({
+        position = trashObject.positionToWorld({71, -2, 41}),
+        width = 1300,
+        height = 350,
+        font_size = 170,
+        label = 'Show/Hide bags',
+        click_function = 'toggleDisplayAllBags',
+    })
 end
 
 function onSave()
@@ -104,4 +115,12 @@ function loadState(params)
             return not Ui.getRoot().object.UI.loading
         end)
     end
+end
+
+function toggleDisplayAllBags()
+    SHOW_ALL_BAGS = not SHOW_ALL_BAGS
+
+    Exploration.toggleBagsDisplay(SHOW_ALL_BAGS)
+    ShipBook.toggleBagsDisplay(SHOW_ALL_BAGS)
+    Section.toggleBagsDisplay(SHOW_ALL_BAGS)
 end

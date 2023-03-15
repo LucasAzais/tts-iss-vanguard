@@ -9,6 +9,7 @@ Constants.WARNING = 3
 Constants.ERROR = 4
 
 Constants.TABLE_GUID = '4ee1f2'
+Constants.TRASH_GUID = 'cf6ca1'
 
 ------------------------------------------------------
 

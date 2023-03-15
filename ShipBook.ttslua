@@ -196,13 +196,17 @@ function ShipBook.init(savedData)
     -- Current selected chapter (if any)
     ShipBook.current_chapter = savedData.current_chapter or nil
 
+    -- Situations text display
+    ShipBook.situations_text = savedData.situations_text or nil
+
     -- Hide the chapter bags (visuals and sound)
-    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
-    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
-    if ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag) then
-        getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
-        getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
-    end
+    ShipBook.toggleBagsDisplay(not ShipBook.HIDE_STORAGE_BAGS)
+    -- getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
+    -- getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
+    -- if ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag) then
+    --     getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
+    --     getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
+    -- end
 
     -- Add saved data to the CHAPTERS
     for name, chapter in pairs(ShipBook.CHAPTERS) do
@@ -680,6 +684,20 @@ function ShipBook.startPhase()
         smooth            = false,
         guid              = ShipBook.SUCCESS_BAG,
     })
+
+    -- Display situations text
+    if not ShipBook.situations_text then
+        ShipBook.situations_text = spawnObject({
+            type = '3DText',
+            position = {-21.58, 2.00, 29.16},
+            rotation = {90, 0, 0},
+            sound = false,
+            callback_function = function(object)
+                object.TextTool.setValue('Current situations ===>')
+                object.TextTool.setFontSize(400)
+            end,
+        }).getGUID()
+    end
 end
 
 function ShipBook.endPhase()
@@ -691,6 +709,12 @@ function ShipBook.endPhase()
     shipbookBag.putObject(getObjectFromGUID(ShipBook.ENERGY_BAG))
     getObjectFromGUID(ShipBook.SUCCESS_BAG).attachInvisibleHider('hide', true)
     shipbookBag.putObject(getObjectFromGUID(ShipBook.SUCCESS_BAG))
+
+    -- Clean up situations text
+    if ShipBook.situations_text then
+        getObjectFromGUID(ShipBook.situations_text).destruct()
+        ShipBook.situations_text = nil
+    end
 
     ShipBook.cleanupExistingChapter()
     ShipBook.collapseMenu()
@@ -719,11 +743,24 @@ function ShipBook.getSearchableChapter(objectGUID)
     return nil, nil
 end
 
+function ShipBook.toggleBagsDisplay(displayBags)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).attachInvisibleHider('hide', not displayBags)
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).getComponent('AudioSource').set('mute', not displayBags)
+    
+    if ShipBook.current_chapter and getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag) then
+        getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).attachInvisibleHider('hide', not displayBags)
+        getObjectFromGUID(ShipBook.CHAPTERS[ShipBook.current_chapter].bag).getComponent('AudioSource').set('mute', not displayBags)
+    end
+
+    ShipBook.HIDE_STORAGE_BAGS = not displayBags
+end
+
 function ShipBook.save()
     local flatData = {
         saved_positions = {},
         scanner_in_use = ShipBook.scanner_in_use,
         current_chapter = ShipBook.current_chapter,
+        situations_text = ShipBook.situations_text,
     }
 
     for name, chapter in pairs(ShipBook.CHAPTERS) do
@@ -743,6 +780,7 @@ return {
     getSearchableChapter = ShipBook.getSearchableChapter,
     startPhase = ShipBook.startPhase,
     endPhase = ShipBook.endPhase,
+    toggleBagsDisplay = ShipBook.toggleBagsDisplay,
 
     SHIPBOOK_BAG = ShipBook.SHIPBOOK_BAG,
     TEMPORARY_BAG_LOCATION = ShipBook.TEMPORARY_BAG_LOCATION,

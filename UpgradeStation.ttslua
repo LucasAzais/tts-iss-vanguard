@@ -190,12 +190,15 @@ function UpgradeStation.upgradeCard()
     local card = Utils.getElementsAbove(getObjectFromGUID(UpgradeStation.STATION))
 
     if card then
+        -- Reset the rank and section first
+        Section.removeCrewmember(card)
+        card.setDecals({})
+
         -- Rank 0 = remove crew member from the active crew
         if UpgradeStation.chosen_rank == Section.RANK0 then
-            Section.removeCrewmember(card)
-            card.setDecals({})
+            -- Do nothing
 
-        -- Try to add the crew memeber to the appropriate section/rank
+        -- Try to add the crew member to the appropriate section/rank
         elseif not Section.addCrewmember(card, UpgradeStation.chosen_section, UpgradeStation.chosen_rank) then
             Section.openDrawer(UpgradeStation.chosen_section, true)
             broadcastToAll('There are too many crew members with this Section and Rank, please remove them first.', Color.Red)

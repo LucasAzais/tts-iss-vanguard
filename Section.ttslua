@@ -33,7 +33,7 @@ Section.SECTIONS = {
         board = '07b6c0',
         turnToken = 'ada930',
         color = Color(86/255, 161/255, 182/255), -- '#56a1b6',
-        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578335001/B7FC975A741BFD5EC3AD674BC341838AF5B73CA0/',
         drawerContent = { { guid = '1e73e3', position = {-48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = 'ab5f9e',
         crew = {},
@@ -44,7 +44,7 @@ Section.SECTIONS = {
         board = 'cf71e9',
         turnToken = '604883',
         color = Color(107/255, 93/255, 144/255), -- '#6b5d90'
-        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578334912/9580CF4B7EC2CA10883B7093D2CD7F3E8FF621CE/',
         drawerContent = { { guid = '12be99', position = {-16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '9e2f6c',
         crew = {},
@@ -66,7 +66,7 @@ Section.SECTIONS = {
         board = 'e5a559',
         turnToken = '722590',
         color = Color(189/255, 171/255, 85/255), -- '#BDAB55'
-        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578334720/6C3EA3DABB6A7C4DBD829CAB4DDD960963657302/',
         drawerContent = { { guid = '051866', position = {48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '877a3b',
         crew = {},
@@ -463,12 +463,17 @@ function Section.readyAllCrew()
                     end
                 end
             end
+
+            table.sort(allFreePositions[name][1], function(l1, l2) return l1.x < l2.x end)
+            table.sort(allFreePositions[name][2], function(l1, l2) return l1.x < l2.x end)
+            table.sort(allFreePositions[name][3], function(l1, l2) return l1.x < l2.x end)
         end
 
         local restingCrewBox = getObjectFromGUID(Section.RESTING_CREW)
 
         -- Add all resting crew to the free points
         for name, section in pairs(Section.SECTIONS) do            
+            log(section.crew)
             for _, crewmember in pairs(section.crew) do
                 for _, object in ipairs(restingCrewBox.getObjects()) do
                     if crewmember.guid == object.guid then
@@ -488,6 +493,16 @@ function Section.readyAllCrew()
             end
         end
     end, 1)
+end
+
+function Section.toggleBagsDisplay(displayBags)
+    for name, section in pairs(Section.SECTIONS) do
+        local drawerBag = getObjectFromGUID(Section.SECTIONS[section.name].drawerBag)
+        drawerBag.attachInvisibleHider('hide', not displayBags)
+        drawerBag.getComponent('AudioSource').set('mute', not displayBags)
+    end
+
+    Section.HIDE_STORAGE_BAGS = not displayBags
 end
 
 function Section.save()
@@ -516,6 +531,7 @@ return {
     closeDrawer = Section.closeDrawer,
     removeCrewmember = Section.removeCrewmember,
     readyAllCrew = Section.readyAllCrew,
+    toggleBagsDisplay = Section.toggleBagsDisplay,
     save = Section.save,
     ----------------------------------
     SECURITY = Section.SECURITY,

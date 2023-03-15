@@ -14,9 +14,7 @@ Exploration.EXPLORATION_BAG = '19a0f8'
 ------------------------------------------------------
 
 function Exploration.init(savedData)
-    getObjectFromGUID(Exploration.EXPLORATION_BAG).attachInvisibleHider('hide', Exploration.HIDE_STORAGE_BAGS)
-    getObjectFromGUID(Exploration.EXPLORATION_BAG).getComponent('AudioSource').set('mute', Exploration.HIDE_STORAGE_BAGS)
-
+    Exploration.toggleBagsDisplay(not Exploration.HIDE_STORAGE_BAGS)
     Exploration.saved_positions = savedData.saved_positions or {}
 end
 
@@ -58,6 +56,13 @@ function Exploration.endPhase()
     end
 end
 
+function Exploration.toggleBagsDisplay(displayBags)
+    getObjectFromGUID(Exploration.EXPLORATION_BAG).attachInvisibleHider('hide', not displayBags)
+    getObjectFromGUID(Exploration.EXPLORATION_BAG).getComponent('AudioSource').set('mute', not displayBags)
+
+    Exploration.HIDE_STORAGE_BAGS = not displayBags
+end
+
 function Exploration.save()
     local flatData = {
         saved_positions = Exploration.saved_positions
@@ -73,4 +78,5 @@ return {
     save = Exploration.save,
     startPhase = Exploration.startPhase,
     endPhase = Exploration.endPhase,
+    toggleBagsDisplay = Exploration.toggleBagsDisplay,
 }
