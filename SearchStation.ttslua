@@ -108,19 +108,12 @@ function SearchStation.pullElement(params)
         end
 
         Wait.frames(function()
-            -- Objects from the ship book are rotated upside down for some reason, so fix that without having to tag everything
-            local finalRotation = {0, 0, 0}
-            if params.chapterGuid then
-                finalRotation = {0, 180, 0}
-            end
-
             local resultElement = cardTray.takeObject({
                 position          = searchStation.getPosition() + Vector(0, 1, 0),
-                rotation          = finalRotation,
+                rotation          = {0, 180, 0},
                 smooth            = false,
                 guid              = params.guid,
             })
-            -- FIXME: some objects have the wrong rotation. Fix it to {0, 180, 0}?
 
             -- Get gear token
             if params.cardTrayGuid == SearchStation.ARMORY_BAG then

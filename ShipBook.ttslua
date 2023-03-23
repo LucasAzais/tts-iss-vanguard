@@ -37,6 +37,9 @@ ShipBook.MEDBAY = 'Medbay'
 ShipBook.MEMORIAL_WALL = 'Memorial Wall'
 ShipBook.SAVE_POINT = 'Save Point'
 
+ShipBook.WAR_ROOM = 'War Room'
+ShipBook.EMBASSY_DISTRICT = 'Embassy District'
+
 ShipBook.COMMAND_BAG = 'abf775'
 ShipBook.ENERGY_BAG = '9a377e'
 ShipBook.SUCCESS_BAG = '977a77'
@@ -193,8 +196,33 @@ function ShipBook.init(savedData)
         }
     }
 
+    ShipBook.is_war_room_setup = savedData.is_war_room_setup or false
+    ShipBook.is_embassy_district_setup = savedData.is_embassy_district_setup or false
+    
+    -- Setup the room bag setup trigger (in case people want to change?)
+    -- And setup one of the two rooms if selected
+    EventManager.addHandler('onObjectLeaveContainer', ShipBook.createSecretSetupButton)
+    if ShipBook.is_war_room_setup then
+        ShipBook.CHAPTERS[ShipBook.WAR_ROOM] = {
+            name = ShipBook.WAR_ROOM,
+            bag = '25bb56',
+            mainBoard = 'b509cf',
+            onSetup = ShipBook.setupWarRoom,
+            order = -1
+        }
+    elseif ShipBook.is_embassy_district_setup then
+        ShipBook.CHAPTERS[ShipBook.EMBASSY_DISTRICT] = {
+            name = ShipBook.EMBASSY_DISTRICT,
+            bag = '1ae614',
+            mainBoard = '3300f7',
+            onSetup = ShipBook.setupEmbassyDistrict,
+            order = -1
+        }
+    end
+
     -- Current selected chapter (if any)
     ShipBook.current_chapter = savedData.current_chapter or nil
+    -- ShipBook.reopen_chapter -> this is only used in the current session. Could be easily saved here
 
     -- Situations text display
     ShipBook.situations_text = savedData.situations_text or nil
@@ -328,6 +356,8 @@ function ShipBook.init(savedData)
         }
     end
 
+    -- There should already be saved position data for the secret rooms
+
     -- Initialise the UI
     local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
 
@@ -355,11 +385,15 @@ function ShipBook.init(savedData)
     })
 
     -- Buttons layout
-    ShipBook.menu_layout = Ui.getRoot():verticalLayout({
-        id = 'ship-book-menu-layout', height = 685, width = 78, spacing = 5, rectAlignment = 'UpperRight', x = 0, y = -247, active = false
+    ShipBook.menu_layout = Ui.getRoot():panel({
+        id = 'ship-book-menu-panel', height = 750, width = 78, rectAlignment = 'UpperRight', x = 0, y = -247, active = false
     })
-    ShipBook.menu_layout.attributes.showAnimation = 'SlideIn_Right'
-    ShipBook.menu_layout.attributes.hideAnimation = 'SlideOut_Right'
+    -- ShipBook.menu_layout.attributes.showAnimation = 'SlideIn_Right'
+    -- ShipBook.menu_layout.attributes.hideAnimation = 'SlideOut_Right'
+
+    local verticalLayout = ShipBook.menu_layout:verticalLayout({
+        id = 'ship-book-menu-layout', height = 685, spacing = 5,
+    })
 
     -- Reorder chapters
     local orderedChapters = {}
@@ -367,14 +401,27 @@ function ShipBook.init(savedData)
     table.sort(orderedChapters, function(l1, l2) return ShipBook.CHAPTERS[l1].order < ShipBook.CHAPTERS[l2].order end)
 
     for index, name in pairs(orderedChapters) do
-        local button = ShipBook.menu_layout:button({
-            id = ShipBook.CHAPTERS[name].name .. '-button',
-            onClick = function() 
-                ShipBook.globalSetup(name)
-                ShipBook.CHAPTERS[name].onSetup() 
-            end
-        })
-        button.attributes.colors = '#00000000|#1C1C1C60|#0C0C0C60|rgba(0,0,0,0)'
+        -- Regular chapters
+        if ShipBook.CHAPTERS[name].order > 0 then
+            local button = verticalLayout:button({
+                id = ShipBook.CHAPTERS[name].name .. '-button',
+                onClick = function() 
+                    ShipBook.openChapter(name)
+                end
+            })
+            button.attributes.colors = '#00000000|#1C1C1C60|#0C0C0C60|rgba(0,0,0,0)'
+        else
+            -- Special button for War Room/Embassy District
+            local button = ShipBook.menu_layout:button({
+                id = ShipBook.CHAPTERS[name].name .. '-button',
+                text = ShipBook.CHAPTERS[name].name,
+                rectAlignment = 'LowerRight',
+                height = 40,
+                onClick = function() 
+                    ShipBook.openChapter(name)
+                end
+            })
+        end
     end
 
     -- Various object events
@@ -387,12 +434,13 @@ function ShipBook.init(savedData)
         height = 40, width = 90, text = 'Rest Crew', rectAlignment = 'UpperRight', x = -90, y = -690,
         active = false
     })
+end
 
-    -- TODO: Remove this once done
-    -- Ui.getRoot():button({
-    --     id = 'save-state', height = 50, width = 100, rectAlignment = 'UpperLeft', x = 100, y = -10, 
-    --     text = 'Camera Pos', fontSize = 30, onClick = function() log(Player.getPlayers()[1].camera) end
-    -- })
+function ShipBook.openChapter(name)
+    if not name or not ShipBook.CHAPTERS[name] then return end
+
+    ShipBook.globalSetup(name)
+    ShipBook.CHAPTERS[name].onSetup()
 end
 
 function ShipBook.expandMenu()
@@ -471,60 +519,64 @@ function ShipBook.cleanupExistingChapter()
     ShipBook.current_chapter = nil
 end
 
+-- Clean up the existing chapter and setup the new one if different
 function ShipBook.globalSetup(chapter)
-    if ShipBook.current_chapter == chapter then return end
+    if ShipBook.current_chapter == chapter then 
+        -- Hide existing bags
+        ShipBook.cleanupExistingChapter()
+    else
+        -- Hide existing bags
+        ShipBook.cleanupExistingChapter()
 
-    -- Hide existing bags
-    ShipBook.cleanupExistingChapter()
+        -- Change the chapter and get the bag
+        ShipBook.current_chapter = chapter
 
-    -- Change the chapter and get the bag
-    ShipBook.current_chapter = chapter
-
-    local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
-    local chapterBag = getObjectFromGUID(ShipBook.CHAPTERS[chapter].bag)
-    if not chapterBag then
-        chapterBag = shipbookBag.takeObject({
-            position          = ShipBook.TEMPORARY_BAG_LOCATION,
-            callback_function = function(obj) obj.setLock(true) end,
-            smooth            = false,
-            guid              = ShipBook.CHAPTERS[chapter].bag,
-        })
-    end
-
-    chapterBag.attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
-    chapterBag.getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
-
-    if ShipBook.CHAPTERS[chapter].mainBoard ~= '' then
-        local mainBoard = chapterBag.takeObject({
-            position          = getObjectFromGUID(ShipBook.SHIPBOOK_ZONE).getPosition(),
-            rotation          = {0, 180, 0},
-            -- TODO: Consider adding obj.interactable = false, but you can't ALT zoom anymore...
-            callback_function = function(obj) obj.setLock(true) end,
-            smooth            = false,
-            guid              = ShipBook.CHAPTERS[chapter].mainBoard,
-        })
-
-        for _, saved in ipairs(ShipBook.CHAPTERS[chapter].savedPositions) do
-            chapterBag.takeObject({
-                -- HACK: Can also use mainBoard.positionToWorld() to save it relative to the main board.
-                position          = saved.position,
-                rotation          = saved.rotation,
-                callback_function = function(obj)
-                    obj.setLock(saved.lock)
-                    if saved.collision == false then
-                        -- obj.getComponent('RigidBody').set('detectCollisions', false)
-                    end
-                end,
+        local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
+        local chapterBag = getObjectFromGUID(ShipBook.CHAPTERS[chapter].bag)
+        if not chapterBag then
+            chapterBag = shipbookBag.takeObject({
+                position          = ShipBook.TEMPORARY_BAG_LOCATION,
+                callback_function = function(obj) obj.setLock(true) end,
                 smooth            = false,
-                guid              = saved.guid,
+                guid              = ShipBook.CHAPTERS[chapter].bag,
             })
         end
 
-        -- Move the camera to the main board
-        -- for _, player in ipairs(Player.getPlayers()) do
-        --     player.lookAt({ position = mainBoard.getPosition() + (ShipBook.CHAPTERS[chapter].cameraPosition or Vector(0, 0, 0)), 
-        --             pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
-        -- end
+        chapterBag.attachInvisibleHider('hide', ShipBook.HIDE_STORAGE_BAGS)
+        chapterBag.getComponent('AudioSource').set('mute', ShipBook.HIDE_STORAGE_BAGS)
+
+        if ShipBook.CHAPTERS[chapter].mainBoard ~= '' then
+            local mainBoard = chapterBag.takeObject({
+                position          = getObjectFromGUID(ShipBook.SHIPBOOK_ZONE).getPosition(),
+                rotation          = {0, 180, 0},
+                -- TODO: Consider adding obj.interactable = false, but you can't ALT zoom anymore...
+                callback_function = function(obj) obj.setLock(true) end,
+                smooth            = false,
+                guid              = ShipBook.CHAPTERS[chapter].mainBoard,
+            })
+
+            for _, saved in ipairs(ShipBook.CHAPTERS[chapter].savedPositions or {}) do
+                chapterBag.takeObject({
+                    -- HACK: Can also use mainBoard.positionToWorld() to save it relative to the main board.
+                    position          = saved.position,
+                    rotation          = saved.rotation,
+                    callback_function = function(obj)
+                        obj.setLock(saved.lock)
+                        if saved.collision == false then
+                            -- obj.getComponent('RigidBody').set('detectCollisions', false)
+                        end
+                    end,
+                    smooth            = false,
+                    guid              = saved.guid,
+                })
+            end
+
+            -- Move the camera to the main board
+            -- for _, player in ipairs(Player.getPlayers()) do
+            --     player.lookAt({ position = mainBoard.getPosition() + (ShipBook.CHAPTERS[chapter].cameraPosition or Vector(0, 0, 0)), 
+            --             pitch = 90, distance = ShipBook.CHAPTERS[chapter].cameraDistance or 30 })
+            -- end
+        end
     end
 end
 
@@ -581,6 +633,12 @@ end
 function ShipBook.setupSavePoint()
 end
 
+function ShipBook.setupWarRoom()
+end
+
+function ShipBook.setupEmbassyDistrict()
+end
+
 -- pos1 = +0.63
 -- pos2 = +1.92
 -- pos3 = +3.24
@@ -588,7 +646,10 @@ end
 function ShipBook.setupScannerCard(registered_object, info)
     if info.collision_object.hasTag('landingCard') and registered_object.getGUID() == ShipBook.SCANNER 
         and not ShipBook.scanner_in_use then
-        log('Setting up the scanner.')
+        
+        if DEBUG then
+            log('Setting up the scanner.')
+        end
 
         ShipBook.scanner_in_use = 1
         local cardDeltas = {
@@ -598,12 +659,13 @@ function ShipBook.setupScannerCard(registered_object, info)
             5.19
         }
 
+        registered_object.setLock(true)
         registered_object.setRotation({0.00, 180.00, 0.00})
         info.collision_object.setLock(true)
         info.collision_object.setRotationSmooth({0.00, 180.00, 0.00})
 
         local position = Vector(registered_object.getPosition())
-        position.y = position.y - 0.02
+        position.y = position.y - 0.01
         position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
         info.collision_object.setPositionSmooth(position)
 
@@ -642,6 +704,7 @@ function ShipBook.setupScannerCard(registered_object, info)
 
         Global.setVar('revealScanner', function(obj)
             registered_object.setRotation({0.00, 180.00, 180.00})
+            registered_object.setLock(false)
             registered_object.clearButtons()
 
             info.collision_object.setRotation({0.00, 180.00, 180.00})
@@ -698,6 +761,11 @@ function ShipBook.startPhase()
             end,
         }).getGUID()
     end
+
+    -- Display the current chapter if there was one previously
+    if ShipBook.reopen_chapter then
+        ShipBook.openChapter(ShipBook.reopen_chapter)
+    end
 end
 
 function ShipBook.endPhase()
@@ -715,6 +783,8 @@ function ShipBook.endPhase()
         getObjectFromGUID(ShipBook.situations_text).destruct()
         ShipBook.situations_text = nil
     end
+
+    ShipBook.reopen_chapter = ShipBook.current_chapter
 
     ShipBook.cleanupExistingChapter()
     ShipBook.collapseMenu()
@@ -755,12 +825,137 @@ function ShipBook.toggleBagsDisplay(displayBags)
     ShipBook.HIDE_STORAGE_BAGS = not displayBags
 end
 
+function ShipBook.createSecretSetupButton(container, object)
+    if container.guid == Constants.SECRET_ENVELOPE_GUID then
+        if object.getName() == 'War Room' and not ShipBook.is_war_room_setup then
+            object.createButton({
+                position = {0, 0.5, -2.4},
+                rotation = {0, 180, 0},
+                width = 1600,
+                height = 600,
+                font_size = 500,
+                label = 'Setup',
+                click_function = 'setupWarRoomBag',
+            })
+
+            Global.setVar('setupWarRoomBag', function(bag)
+                ShipBook.setupSecretRoomBag(bag, ShipBook.WAR_ROOM)
+            end)
+        -- Embassy District
+        elseif object.getName() == 'Embassy District' and not ShipBook.is_embassy_district_setup then
+            object.createButton({
+                position = {0, 0.5, -2.4},
+                rotation = {0, 180, 0},
+                width = 1600,
+                height = 600,
+                font_size = 500,
+                label = 'Setup',
+                click_function = 'setupEmbassyDistrictBag',
+            })
+
+            Global.setVar('setupEmbassyDistrictBag', function(bag)
+                ShipBook.setupSecretRoomBag(bag, ShipBook.EMBASSY_DISTRICT)
+            end)
+        end
+    end
+end
+
+function ShipBook.setupSecretRoomBag(bag, name)
+    bag.clearButtons()
+
+    -- Remove any existing secret room
+    if ShipBook.is_war_room_setup then
+        getObjectFromGUID(Constants.SECRET_ENVELOPE_GUID).putObject(
+            getObjectFromGUID(ShipBook.SHIPBOOK_BAG).takeObject({
+                guid = ShipBook.CHAPTERS[ShipBook.WAR_ROOM].bag
+            })
+        )
+
+        ShipBook.CHAPTERS[ShipBook.WAR_ROOM] = nil
+        Ui.getRoot():hide(ShipBook.WAR_ROOM .. '-button')
+        ShipBook.is_war_room_setup = false
+    elseif ShipBook.is_embassy_district_setup then
+        getObjectFromGUID(Constants.SECRET_ENVELOPE_GUID).putObject(
+            getObjectFromGUID(ShipBook.SHIPBOOK_BAG).takeObject({
+                guid = ShipBook.CHAPTERS[ShipBook.EMBASSY_DISTRICT].bag
+            })
+        )
+
+        ShipBook.CHAPTERS[ShipBook.EMBASSY_DISTRICT] = nil
+        Ui.getRoot():hide(ShipBook.EMBASSY_DISTRICT .. '-button')
+        ShipBook.is_embassy_district_setup = false
+    end
+
+    -- Add the corresponding chapter to the book
+    if name == ShipBook.WAR_ROOM then
+        ShipBook.CHAPTERS[ShipBook.WAR_ROOM] = {
+            name = ShipBook.WAR_ROOM,
+            bag = '25bb56',
+            mainBoard = 'b509cf',
+            onSetup = ShipBook.setupWarRoom,
+            order = -1
+        }
+    elseif name == ShipBook.EMBASSY_DISTRICT then
+        ShipBook.CHAPTERS[ShipBook.EMBASSY_DISTRICT] = {
+            name = ShipBook.EMBASSY_DISTRICT,
+            bag = '1ae614',
+            mainBoard = '3300f7',
+            onSetup = ShipBook.setupEmbassyDistrict,
+            order = -1
+        }
+    end
+
+    -- Add the room button
+    local button = ShipBook.menu_layout:button({
+        id = ShipBook.CHAPTERS[name].name .. '-button',
+        text = ShipBook.CHAPTERS[name].name,
+        rectAlignment = 'LowerRight',
+        height = 40,
+        onClick = function() 
+            ShipBook.openChapter(name)
+        end
+    })
+    Ui.getRoot():refresh()
+
+    -- Send the bag to the shipbook container
+    getObjectFromGUID(ShipBook.SHIPBOOK_BAG).putObject(bag)
+
+    -- Add the room position data
+    if name == ShipBook.WAR_ROOM then
+        ShipBook.CHAPTERS[ShipBook.WAR_ROOM].savedPositions = {
+            { guid = 'a90c5c', position = {18.93, 1.48, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = '58acfa', position = {0.00, 1.48, 16.97}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    elseif name == ShipBook.EMBASSY_DISTRICT then
+        ShipBook.CHAPTERS[ShipBook.EMBASSY_DISTRICT].savedPositions = {
+            { guid = 'a92aec', position = {18.93, 1.48, 0.00}, rotation = {0.00, 180.00, 0.00}, lock = true},
+            { guid = 'dc59d6', position = {0.00, 1.48, 16.97}, rotation = {0.00, 180.00, 0.00}, lock = true},
+        }
+    end
+
+    -- Confirm the setup
+    if name == ShipBook.WAR_ROOM then
+        ShipBook.is_war_room_setup = true
+        ShipBook.is_embassy_district_setup = false
+    elseif name == ShipBook.EMBASSY_DISTRICT then
+        ShipBook.is_embassy_district_setup = true
+        ShipBook.is_war_room_setup = false
+    end
+end
+
+function ShipBook.showMenu()
+    ShipBook.toggle_button:show()
+    ShipBook.expandMenu()
+end
+
 function ShipBook.save()
     local flatData = {
         saved_positions = {},
         scanner_in_use = ShipBook.scanner_in_use,
         current_chapter = ShipBook.current_chapter,
         situations_text = ShipBook.situations_text,
+        is_war_room_setup = ShipBook.is_war_room_setup,
+        is_embassy_district_setup = ShipBook.is_embassy_district_setup,
     }
 
     for name, chapter in pairs(ShipBook.CHAPTERS) do
@@ -781,6 +976,7 @@ return {
     startPhase = ShipBook.startPhase,
     endPhase = ShipBook.endPhase,
     toggleBagsDisplay = ShipBook.toggleBagsDisplay,
+    showMenu = ShipBook.showMenu,
 
     SHIPBOOK_BAG = ShipBook.SHIPBOOK_BAG,
     TEMPORARY_BAG_LOCATION = ShipBook.TEMPORARY_BAG_LOCATION,

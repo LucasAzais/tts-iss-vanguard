@@ -189,7 +189,8 @@ end
 function UpgradeStation.upgradeCard()
     local card = Utils.getElementsAbove(getObjectFromGUID(UpgradeStation.STATION))
 
-    if card then
+    -- Check there is an actual card on top of the station
+    if card and card.type == 'Card' then
         -- Reset the rank and section first
         Section.removeCrewmember(card)
         card.setDecals({})

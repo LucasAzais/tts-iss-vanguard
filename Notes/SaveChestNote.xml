@@ -1,0 +1,9 @@
+<Panel width="1500" height="900" color='#0A0A0A' position="0 0 -30" rotation="0 0 180" scale="0.333 0.333 1">
+    <Text color="#F0F0F0" rectAlignment="UpperCenter" width="1450" height="700" fontSize="60">Use the Save Chest to import/export your campaign:
+    1. Finish the current gameplay loop
+    2. Press "Save Game" twice
+    3. Right click on the chest - "Save Object"
+    4. Open a new version of this mod and place the saved chest there using Objects - Saved Objects - Saved Chest
+    5. Click on "Load Game"</Text>
+    <Button rectAlignment="LowerCenter" offsetXY="0 40" width="400" height="150" fontSize="50" onClick="closeAndDestroy">Understood</Button>
+</Panel>

@@ -23,12 +23,14 @@ function Cycle.init(savedData)
         text = Cycle.SHIPBOOK
     else
         text = Cycle.EXPLORATION
+        ShipBook.showMenu()
     end
 
     Cycle.button = Ui.getRoot():button({
         id = 'cycle-toggle', height = 70, width = 200, rectAlignment = 'UpperLeft', x = 100, y = -10, 
         text = text, fontSize = 25, onClick = function() Cycle.nextPhase() end
     })
+    Cycle.button.attributes.color = '#FFFFFF'
     Cycle.button.attributes.allowDragging = true
     Cycle.button.attributes.returnToOriginalPositionWhenReleased = false
 end
@@ -51,6 +53,10 @@ function Cycle.nextPhase()
     end
 end
 
+function Cycle.getPhase()
+    return Cycle.current_phase
+end
+
 function Cycle.save()
     local flatData = {
         current_phase = Cycle.current_phase
@@ -62,6 +68,11 @@ end
 ------------------------------------------------------
 
 return {
+    EXPLORATION = Cycle.EXPLORATION,
+    SHIPBOOK = Cycle.SHIPBOOK,
+
     init = Cycle.init,
     save = Cycle.save,
+    getPhase = Cycle.getPhase,
+    nextPhase = Cycle.nextPhase,
 }

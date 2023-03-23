@@ -1,0 +1,7 @@
+<Panel width="1000" height="500" color='#0A0A0A' position="0 0 -30" rotation="0 0 180" scale="0.333 0.333 1">
+    <Text color="#F0F0F0" rectAlignment="UpperCenter" width="950" height="400" fontSize="60">To use the Planetary Scanner:
+    1. Place a Landing card on top of it
+    2. Press <b>Scan</b> to push the card up
+    3. Press <b>Reveal</b> to flip the Scanner</Text>
+    <Button rectAlignment="LowerCenter" offsetXY="0 40" width="300" height="100" fontSize="50" onClick="closeAndDestroy">Understood</Button>
+</Panel>

@@ -28,7 +28,9 @@ function onLoad(script_state)
 end
 
 function warnSaveGame()
-    broadcastToAll('Please finish the current gameplay loop and put away the cards before saving.\nIf you\'re ready, click on "Save Game" again.', Color.Blue)
+    broadcastToAll('1. Please finish the current exploration/ship phase first', Color.Blue)
+    broadcastToAll('2. Then put away the crew members (into section drawers/resting crew boxes)', Color.Blue)
+    broadcastToAll('3. If you\'re ready, click on "Save Game" again.', Color.Blue)
     self.editButton({index = 0, click_function = "saveGame"})
 
     -- Wait 5s before reverting to the warning message

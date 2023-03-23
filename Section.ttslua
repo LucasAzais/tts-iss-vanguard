@@ -44,7 +44,7 @@ Section.SECTIONS = {
         board = 'cf71e9',
         turnToken = '604883',
         color = Color(107/255, 93/255, 144/255), -- '#6b5d90'
-        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578334912/9580CF4B7EC2CA10883B7093D2CD7F3E8FF621CE/',
+        drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578375477/E6F1D75D8F8EEBA28BACD4242CC46CE3FA671CD6/',
         drawerContent = { { guid = '12be99', position = {-16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '9e2f6c',
         crew = {},
@@ -83,8 +83,10 @@ function Section.init(savedData)
 
         -- Set some of the variables
         section.crew = (savedData[name] and savedData[name].crew) or {}
-        log('Loaded crew members for ' .. name)
-        log(section.crew)
+        if DEBUG then
+            log('Loaded crew members for ' .. name)
+            log(section.crew)
+        end
 
         section.availableActions = 2
         section.isReady = (savedData[name] and savedData[name].isReady) or false
@@ -239,10 +241,17 @@ function Section.init(savedData)
         end
 
         -- Drawer button
-        section.drawerButton = panel:button({
-            id = name .. '-section-button', onClick = function() Section.openDrawer(name) end, width = 200, height = 200, x=350, y=0
-        })
-        section.drawerButton.attributes.image = 'down-arrow'
+        if section.drawerOpen then
+            section.drawerButton = panel:button({
+                id = name .. '-section-button', onClick = function() Section.closeDrawer(name) end, width = 200, height = 200, x=350, y=0
+            })
+            section.drawerButton.attributes.image = 'up-arrow'
+        else
+            section.drawerButton = panel:button({
+                id = name .. '-section-button', onClick = function() Section.openDrawer(name) end, width = 200, height = 200, x=350, y=0
+            })
+            section.drawerButton.attributes.image = 'down-arrow'
+        end
     end
 end
 
@@ -316,7 +325,9 @@ function Section.openDrawer(name, moveCamera)
 
     -- Check if it is already open
     if not section.drawerOpen then
-        log('Opening ' .. name .. ' drawer.')
+        if DEBUG then
+            log('Opening ' .. name .. ' drawer.')
+        end
 
         section.drawerButton:setImage('up-arrow')
         section.drawerButton:setOnClick(function()
@@ -362,7 +373,9 @@ function Section.closeDrawer(name)
     local section = Section.SECTIONS[name]
 
     if section.drawerOpen then
-        log('Closing ' .. name .. ' drawer.')
+        if DEBUG then
+            log('Closing ' .. name .. ' drawer.')
+        end
 
         section.drawerButton:setImage('down-arrow')
         section.drawerButton:setOnClick(function()
@@ -425,7 +438,9 @@ function Section.removeCrewmember(crew)
             if member.guid == crew.getGUID() then
                 crew.removeTag('rank'..member.rank)
                 table.remove(section.crew, index)
-                log('Removed recruit ' .. crew.getGUID())
+                if DEBUG then
+                    log('Removed recruit ' .. crew.getGUID())
+                end
 
                 return true
             end
@@ -480,8 +495,11 @@ function Section.readyAllCrew()
         local restingCrewBox = getObjectFromGUID(Section.RESTING_CREW)
 
         -- Add all resting crew to the free points
-        for name, section in pairs(Section.SECTIONS) do            
-            log(section.crew)
+        for name, section in pairs(Section.SECTIONS) do
+            if DEBUG then
+                log(section.crew)
+            end
+            
             for _, crewmember in pairs(section.crew) do
                 for _, object in ipairs(restingCrewBox.getObjects()) do
                     if crewmember.guid == object.guid then

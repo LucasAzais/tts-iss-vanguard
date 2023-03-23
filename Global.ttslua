@@ -6,21 +6,16 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
--- TODO: Discovery Decks need to be available during Research, Starmap and Memorial Wall
--- Move decks them to the side of the book, left of the command/energy tokens, then move then to their place in the planet book
+-- Before release
+-- TODO: Fix save chest
 
--- TODO: Need scripting for add-on facility
-
-
+-- Maybe later stuff?
 -- TODO: Ship book page 24 -> add to the planetary exploration?
-
 -- TODO: Consider hiding the ShipBook elements while they load
-
 -- TODO: Fix card size (section cards in particular) + tutorial cards size and order (unique discovery, mission etc...)
 
 -- TODO: Change upgrade station icons (more transparent?)
 -- TODO: Add empty bridge cards tray?
--- TODO: Add secret envelope section
 -- TODO: Add a "leave planet" button?
 
 -- Original bag locations: Ship = {-2.79, 1.33, 89.60}, planet = {0.24, 1.30, 89.60}
@@ -44,6 +39,7 @@ local NOT_INTERACTABLE = {
 }
 
 local SHOW_ALL_BAGS = false
+DEBUG = false
 
 function onLoad(script_state)
     math.randomseed(os.time())
@@ -56,7 +52,9 @@ function onLoad(script_state)
     -- Parse save data
     local savedData = JSON.decode(script_state) or {}
     -- savedData = {}
-    -- log(savedData)
+    if DEBUG then
+        log(savedData)
+    end
 
     Log.init()
     Ui.init()
@@ -92,6 +90,10 @@ function onSave()
 end
 
 function prepareTableForSave()
+    if Cycle.getPhase() ~= Cycle.SHIPBOOK then
+        Cycle.nextPhase()
+    end
+
     ShipBook.cleanupExistingChapter()
     Section.closeAllDrawers()
 end
