@@ -1,3 +1,4 @@
+-- Github: https://github.com/LucasAzais/tts-iss-vanguard
 -- This project uses Benjamin-Dobell/luabundle git repo to organise this project
 
 -- Naming conventions, hopefully that's understandable
@@ -6,8 +7,14 @@
 -- Global vars: underscore: CONSTANTS_LIKE_THIS and variables_like_this
 -- Local vars: camelCase
 
+-- Don't forget to have the saveChest and the Logbook objects on the table to update their script properly
+
 -- Before release
--- TODO: Fix save chest
+-- TODO: Added scripted logbook, inspired by @TokMor, although I still recommend using the app as it's much better.
+-- TODO: Added planetopedia snap points
+-- TODO: Can skip player turns if playing with a lower player count
+-- TODO: Changed the way the planetary scanner is working as it seems some users were having difficulties interacting with it
+-- TODO: Send to drawer button on crew members
 
 -- Maybe later stuff?
 -- TODO: Ship book page 24 -> add to the planetary exploration?
@@ -24,7 +31,9 @@ local Constants = require('Constants')
 local Cycle = require('Cycle')
 local EventManager = require('EventManager')
 local Exploration = require('Exploration')
+local GlobalUi = require('GlobalUi')
 local Log = require('Log')
+local Options = require('Options')
 local SearchStation = require('SearchStation')
 local Section = require('Section')
 local ShipBook = require('ShipBook')
@@ -58,12 +67,14 @@ function onLoad(script_state)
 
     Log.init()
     Ui.init()
+    Options.init(savedData.options or {})
     ShipBook.init(savedData.ship_book or {})
     Exploration.init(savedData.exploration or {})
     Section.init(savedData.sections or {})
     UpgradeStation.init()
     Cycle.init(savedData.cycle or {})
     SearchStation.init()
+    GlobalUi.init()
     Ui.globalRefresh()
 
     -- Make a button on the trash to show all bags
@@ -83,6 +94,7 @@ function onSave()
 
     dataToSave.ship_book = ShipBook.save()
     dataToSave.exploration = Exploration.save()
+    dataToSave.options = Options.save()
     dataToSave.sections = Section.save()
     dataToSave.cycle = Cycle.save()
 

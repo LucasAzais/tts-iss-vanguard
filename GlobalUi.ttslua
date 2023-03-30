@@ -1,0 +1,99 @@
+local GlobalUi = {}
+GlobalUi.__index = GlobalUi
+
+local Cycle = require('Cycle')
+local Options = require('Options')
+local Section = require('Section')
+local ShipBook = require('ShipBook') 
+local Ui = require('Ui')
+
+------------------------------------------------------
+
+function GlobalUi.init(saved_data)
+    -- Create the exploration/management button
+    local text = ''
+    if Cycle.getPhase() == Cycle.EXPLORATION then
+        text = Cycle.SHIPBOOK
+    else
+        text = Cycle.EXPLORATION
+    end
+
+    GlobalUi.cycle_button = Ui.getRoot():button({
+        id = 'cycle-toggle', height = 40, width = 300, rectAlignment = 'UpperLeft', x = 120, y = -10, 
+        text = text, fontSize = 25, onClick = function() GlobalUi.cycle_button:setText(Cycle.nextPhase()) end
+    })
+    GlobalUi.cycle_button.attributes.color = '#FFFFFF'
+    GlobalUi.cycle_button.attributes.allowDragging = true
+    GlobalUi.cycle_button.attributes.returnToOriginalPositionWhenReleased = false
+
+    -- Create the collapsible UI
+    GlobalUi.menu_panel = Ui.getRoot():verticalLayout({
+        id = 'options-panel', height = 60, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '10 10 0 0', active = false
+    })
+    GlobalUi.menu_panel.attributes.color = '#05050559'
+    GlobalUi.menu_panel.attributes.allowDragging = true
+    GlobalUi.menu_panel.attributes.returnToOriginalPositionWhenReleased = false
+    GlobalUi.menu_panel.attributes.childForceExpandWidth = false
+
+    GlobalUi.toggle_button = Ui.getRoot():button({
+        id = 'options-menu-toggle', height = 40, width = 40, rectAlignment = 'UpperLeft', x = 70, y = -10, onClick = function() GlobalUi.expandMenu() end
+    })
+    GlobalUi.toggle_button.attributes.icon = 'down-arrow'
+    GlobalUi.toggle_button.attributes.allowDragging = true
+    GlobalUi.toggle_button.attributes.returnToOriginalPositionWhenReleased = false
+
+
+
+    local text = GlobalUi.menu_panel:text({ 
+        id = 'used-sections-text', text = 'Sections in Use', height = 30,
+    })
+    text.attributes.color = '#FFFFFF'
+    text.attributes.fontSize = 18
+    text.attributes.tooltip = 'Used when playing with less than 4 sections:\n - Selected sections will need to take a turn before turn order resets.\n - Others will be skipped.'
+
+    local layout = GlobalUi.menu_panel:horizontalLayout({
+        id = 'used-sections-layout', height = 30, rectAlignment = 'UpperLeft',
+    })
+
+    for section, isInUse in pairs(Options.sections_in_use) do
+        local toggle = layout:toggle({ id = section .. '-used-toggle', text = section, onValueChanged = function(_, isOn)
+            Options.sections_in_use[section] = (isOn == 'True')
+        end })
+        toggle.attributes.textColor = Section.getSection(section).colorHex
+        toggle.attributes.colors = Section.getSection(section).colorHex .. '|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
+        toggle.attributes.fontSize = 15
+        toggle.attributes.fontStyle = 'Bold'
+        toggle.attributes.isOn = true
+    end
+end
+
+function GlobalUi.expandMenu()
+    GlobalUi.toggle_button:setIcon('up-arrow')
+    GlobalUi.toggle_button:setOnClick(function() GlobalUi.collapseMenu() end)
+
+    -- Display vertical menu
+    GlobalUi.menu_panel:show()
+end
+
+function GlobalUi.collapseMenu()
+    GlobalUi.toggle_button:setIcon('down-arrow')
+    GlobalUi.toggle_button:setOnClick(function() GlobalUi.expandMenu() end)
+
+    -- Hide vertical menu
+    GlobalUi.menu_panel:hide()
+end
+
+function GlobalUi.save()
+    local flatData = {
+        
+    }
+
+    return flatData
+end
+
+------------------------------------------------------
+
+return {
+    init = GlobalUi.init,
+    save = GlobalUi.save,
+}

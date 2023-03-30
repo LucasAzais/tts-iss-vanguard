@@ -1,4 +1,4 @@
-<Panel width="2900" height="2000" color='#0A0A0A' position="0 0 -100" rotation="0 0 180" scale="0.333 0.333 1">
+<Panel width="2900" height="2000" color='#0A0A0A' position="0 0 -200" rotation="0 0 180" scale="0.333 0.333 1">
     <Text color="#F0F0F0" rectAlignment="UpperCenter" offsetXY="0 150" width="2800" fontSize="100">The <b>1</b> and <b>2</b> buttons represent your available actions.
     <textcolor color="Green">Green = Available</textcolor> / <textcolor color="Red">Red = Unvailable</textcolor>
     

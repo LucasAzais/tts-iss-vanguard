@@ -137,11 +137,17 @@ function Ui:createElementOnObject(tag, params)
 end
 
 function Ui:panel(params)
+    assert(params.padding == nil or 'string' == type(params.padding))
+
     local layout = self:createElement('Panel', params)
     layout.z = self.z
     layout.rotation = '0 0 0'
     -- layout.scale = self.scale
     layout.attributes.childForceExpandHeight = 'false'
+
+    if params.padding ~= nil then
+        layout.attributes.padding = params.padding
+    end
 
     setmetatable(layout, Ui)
 
@@ -150,6 +156,7 @@ end
 
 function Ui:verticalLayout(params)
     assert(params.spacing == nil or 'number' == type(params.spacing))
+    assert(params.padding == nil or 'string' == type(params.padding))
 
     local layout = self:createElement('VerticalLayout', params)
     layout.z = self.z
@@ -162,6 +169,10 @@ function Ui:verticalLayout(params)
         layout.attributes.spacing = params.spacing
     end
 
+    if params.padding ~= nil then
+        layout.attributes.padding = params.padding
+    end
+
     setmetatable(layout, Ui)
 
     return layout
@@ -169,6 +180,7 @@ end
 
 function Ui:horizontalLayout(params)
     assert(params.spacing == nil or 'number' == type(params.spacing))
+    assert(params.padding == nil or 'string' == type(params.padding))
 
     local layout = self:createElement('HorizontalLayout', params)
     layout.z = self.z
@@ -179,6 +191,10 @@ function Ui:horizontalLayout(params)
 
     if params.spacing ~= nil then
         layout.attributes.spacing = params.spacing
+    end
+
+    if params.padding ~= nil then
+        layout.attributes.padding = params.padding
     end
 
     setmetatable(layout, Ui)

@@ -1,6 +1,7 @@
 local UpgradeStation = {}
 UpgradeStation.__index = UpgradeStation
 
+local Constants = require('Constants')
 local Section = require('Section')
 local Ui = require('Ui')
 local Utils = require('Utils')
@@ -8,25 +9,25 @@ local Utils = require('Utils')
 UpgradeStation.STATION = '53c6df'
 
 UpgradeStation.SECTION_RANKS_IMAGES = {
-    [Section.SECURITY] = {
+    [Constants.SECURITY] = {
         [Section.RANK0] = '',
         [Section.RANK1] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517697/5A32AB2966542DEB9B08F9E0A4F82A95B9DEE1A3/',
         [Section.RANK2] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517727/A17F4771F00BB819488A72165B7050B712F94AD5/',
         [Section.RANK3] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517756/E91F8D83A7E340D58BB7FC39CEDFCC9F0EC4B3E0/',
     },
-    [Section.SCIENCE] = {
+    [Constants.SCIENCE] = {
         [Section.RANK0] = '',
         [Section.RANK1] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517593/C52F185EF8033F7E0CFDCFB49783908589328AF6/',
         [Section.RANK2] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517622/AAFBB726FBA2FA4DA0DB5FB97CCF7931F6700701/',
         [Section.RANK3] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517658/910ED38010973155521FF626DF7471E37913394C/',
     },
-    [Section.RECON] = {
+    [Constants.RECON] = {
         [Section.RANK0] = '',
         [Section.RANK1] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517528/B8C4CABA261C5C909C7A047F9458C3DEB794615E/',
         [Section.RANK2] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517565/C2F2106D848094D665F7BFB4EE4182A7E769E443/',
         [Section.RANK3] = 'http://cloud-3.steamusercontent.com/ugc/1897730823617122449/84BBA32FDD9AD69DB82543230364DFB716E3048C/',
     },
-    [Section.ENGINEERING] = {
+    [Constants.ENGINEERING] = {
         [Section.RANK0] = '',
         [Section.RANK1] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517437/964F95C6479C0C81117D999102464924DCD574E1/',
         [Section.RANK2] = 'http://cloud-3.steamusercontent.com/ugc/1897730823603517493/31153ABEFBA12035C96141A0BC468D689EB14E19/',
@@ -63,27 +64,27 @@ function UpgradeStation.init()
 
     -- Left side Sections
     UpgradeStation.section_buttons = {}
-    UpgradeStation.section_buttons[Section.SECURITY] = sectionLayout:button({
-        id = 'upgrade-station-security-button', onClick = function() UpgradeStation.selectSection(Section.SECURITY) end
+    UpgradeStation.section_buttons[Constants.SECURITY] = sectionLayout:button({
+        id = 'upgrade-station-security-button', onClick = function() UpgradeStation.selectSection(Constants.SECURITY) end
     })
-    UpgradeStation.section_buttons[Section.SECURITY].attributes.icon = 'security'
-    UpgradeStation.section_buttons[Section.SECURITY].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
+    UpgradeStation.section_buttons[Constants.SECURITY].attributes.icon = 'security'
+    UpgradeStation.section_buttons[Constants.SECURITY].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
 
-    UpgradeStation.section_buttons[Section.SCIENCE] = sectionLayout:button({
-        id = 'upgrade-station-science-button', onClick = function() UpgradeStation.selectSection(Section.SCIENCE) end
+    UpgradeStation.section_buttons[Constants.SCIENCE] = sectionLayout:button({
+        id = 'upgrade-station-science-button', onClick = function() UpgradeStation.selectSection(Constants.SCIENCE) end
     })
-    UpgradeStation.section_buttons[Section.SCIENCE].attributes.icon = 'science'
-    UpgradeStation.section_buttons[Section.SCIENCE].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
-    UpgradeStation.section_buttons[Section.RECON] = sectionLayout:button({
-        id = 'upgrade-station-recon-button', onClick = function() UpgradeStation.selectSection(Section.RECON) end
+    UpgradeStation.section_buttons[Constants.SCIENCE].attributes.icon = 'science'
+    UpgradeStation.section_buttons[Constants.SCIENCE].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
+    UpgradeStation.section_buttons[Constants.RECON] = sectionLayout:button({
+        id = 'upgrade-station-recon-button', onClick = function() UpgradeStation.selectSection(Constants.RECON) end
     })
-    UpgradeStation.section_buttons[Section.RECON].attributes.icon = 'recon'
-    UpgradeStation.section_buttons[Section.RECON].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
-    UpgradeStation.section_buttons[Section.ENGINEERING] = sectionLayout:button({
-        id = 'upgrade-station-engineering-button', onClick = function() UpgradeStation.selectSection(Section.ENGINEERING) end
+    UpgradeStation.section_buttons[Constants.RECON].attributes.icon = 'recon'
+    UpgradeStation.section_buttons[Constants.RECON].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
+    UpgradeStation.section_buttons[Constants.ENGINEERING] = sectionLayout:button({
+        id = 'upgrade-station-engineering-button', onClick = function() UpgradeStation.selectSection(Constants.ENGINEERING) end
     })
-    UpgradeStation.section_buttons[Section.ENGINEERING].attributes.icon = 'engineering'
-    UpgradeStation.section_buttons[Section.ENGINEERING].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
+    UpgradeStation.section_buttons[Constants.ENGINEERING].attributes.icon = 'engineering'
+    UpgradeStation.section_buttons[Constants.ENGINEERING].attributes.colors = '#00000000|#00000088|#00000088|#00000000'
 
     -- Right side R0/R1/R2/R3
     UpgradeStation.rank_buttons = {}

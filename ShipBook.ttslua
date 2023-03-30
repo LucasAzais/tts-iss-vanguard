@@ -372,7 +372,7 @@ function ShipBook.init(savedData)
         id = 'ship-book-menu-toggle', height = 40, width = 40, rectAlignment = 'UpperRight', x = 0, y = -200, onClick = function() ShipBook.expandMenu() end,
         active = false
     })
-    ShipBook.toggle_button.attributes.icon = 'ExpandButton'
+    ShipBook.toggle_button.attributes.icon = 'left-arrow'
     -- ShipBook.toggle_button.attributes.allowDragging = true
     -- ShipBook.toggle_button.attributes.returnToOriginalPositionWhenReleased = false
 
@@ -444,7 +444,7 @@ function ShipBook.openChapter(name)
 end
 
 function ShipBook.expandMenu()
-    ShipBook.toggle_button:setIcon('CollapseButton')
+    ShipBook.toggle_button:setIcon('right-arrow')
     ShipBook.toggle_button:setOnClick(function() ShipBook.collapseMenu() end)
 
     -- Display vertical menu
@@ -458,7 +458,7 @@ function ShipBook.expandMenu()
 end
 
 function ShipBook.collapseMenu()
-    ShipBook.toggle_button:setIcon('ExpandButton')
+    ShipBook.toggle_button:setIcon('left-arrow')
     ShipBook.toggle_button:setOnClick(function() ShipBook.expandMenu() end)
 
     -- Hide vertical menu

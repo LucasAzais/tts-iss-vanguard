@@ -17,22 +17,9 @@ function Cycle.init(savedData)
     -- Get the current cycle step
     Cycle.current_phase = savedData.current_phase or Cycle.EXPLORATION
 
-    -- Create the exploration/management button
-    local text = ''
-    if Cycle.current_phase == Cycle.EXPLORATION then
-        text = Cycle.SHIPBOOK
-    else
-        text = Cycle.EXPLORATION
+    if Cycle.getPhase() == Cycle.SHIPBOOK then
         ShipBook.showMenu()
     end
-
-    Cycle.button = Ui.getRoot():button({
-        id = 'cycle-toggle', height = 70, width = 200, rectAlignment = 'UpperLeft', x = 100, y = -10, 
-        text = text, fontSize = 25, onClick = function() Cycle.nextPhase() end
-    })
-    Cycle.button.attributes.color = '#FFFFFF'
-    Cycle.button.attributes.allowDragging = true
-    Cycle.button.attributes.returnToOriginalPositionWhenReleased = false
 end
 
 function Cycle.nextPhase()
@@ -40,17 +27,17 @@ function Cycle.nextPhase()
         Exploration.endPhase()
 
         Cycle.current_phase = Cycle.SHIPBOOK
-        Cycle.button:setText(Cycle.EXPLORATION)
         
         ShipBook.startPhase()
     else
         ShipBook.endPhase()
         
         Cycle.current_phase = Cycle.EXPLORATION
-        Cycle.button:setText(Cycle.SHIPBOOK)
 
         Exploration.startPhase()
     end
+
+    return Cycle.getPhase()
 end
 
 function Cycle.getPhase()

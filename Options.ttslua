@@ -1,0 +1,27 @@
+local Options = {}
+Options.__index = Options
+
+local Constants = require('Constants')
+
+------------------------------------------------------
+
+function Options.init(saved_data)
+    Options.sections_in_use = saved_data.sections_in_use or {
+        [Constants.SECURITY] = true,
+        [Constants.SCIENCE] = true,
+        [Constants.RECON] = true,
+        [Constants.ENGINEERING] = true,
+    }
+end
+
+function Options.save()
+    local flatData = {
+        sections_in_use = Options.sections_in_use
+    }
+
+    return flatData
+end
+
+------------------------------------------------------
+
+return Options

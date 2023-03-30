@@ -12,6 +12,12 @@ Constants.TABLE_GUID = '4ee1f2'
 Constants.TRASH_GUID = 'cf6ca1'
 Constants.SECRET_ENVELOPE_GUID = '10ed4a'
 
+-- Sections
+Constants.SECURITY = 'Security'
+Constants.SCIENCE = 'Science'
+Constants.RECON = 'Recon'
+Constants.ENGINEERING = 'Engineering'
+
 ------------------------------------------------------
 
 return Constants

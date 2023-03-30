@@ -3,6 +3,7 @@ Section.__index = Section
 
 local Constants = require('Constants')
 local EventManager = require('EventManager')
+local Options = require('Options')
 local Ui = require('Ui')
 local Utils = require('Utils')
 
@@ -15,12 +16,6 @@ Section.RED_COLOR = '#A81515'
 
 Section.RESTING_CREW = 'c800d4'
 
--- Sections
-Section.SECURITY = 'Security'
-Section.SCIENCE = 'Science'
-Section.RECON = 'Recon'
-Section.ENGINEERING = 'Engineering'
-
 -- Ranks
 Section.RANK0 = 0
 Section.RANK1 = 1
@@ -28,44 +23,48 @@ Section.RANK2 = 2
 Section.RANK3 = 3
 
 Section.SECTIONS = {
-    [Section.SECURITY] = {
-        name = Section.SECURITY,
+    [Constants.SECURITY] = {
+        name = Constants.SECURITY,
         board = '07b6c0',
         turnToken = 'ada930',
-        color = Color(86/255, 161/255, 182/255), -- '#56a1b6',
+        color = Color(86/255, 161/255, 182/255), 
+        colorHex = '#56a1b6',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578335001/B7FC975A741BFD5EC3AD674BC341838AF5B73CA0/',
         drawerContent = { { guid = '1e73e3', position = {-48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = 'ab5f9e',
         crew = {},
         crewBoard = '1e73e3',
     },
-    [Section.SCIENCE] = {
-        name = Section.SCIENCE,
+    [Constants.SCIENCE] = {
+        name = Constants.SCIENCE,
         board = 'cf71e9',
         turnToken = '604883',
-        color = Color(107/255, 93/255, 144/255), -- '#6b5d90'
+        color = Color(107/255, 93/255, 144/255),
+        colorHex = '#6b5d90',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578375477/E6F1D75D8F8EEBA28BACD4242CC46CE3FA671CD6/',
         drawerContent = { { guid = '12be99', position = {-16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '9e2f6c',
         crew = {},
         crewBoard = '12be99',
     },
-    [Section.RECON] = {
-        name = Section.RECON,
+    [Constants.RECON] = {
+        name = Constants.RECON,
         board = '12ef80',
         turnToken = '7ed433',
-        color = Color(183/255, 102/255, 119/255), -- '#b76677'
+        color = Color(183/255, 102/255, 119/255),
+        colorHex = '#b76677',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
         drawerContent = { { guid = 'd84252', position = {16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '72e714',
         crew = {},
         crewBoard = 'd84252',
     },
-    [Section.ENGINEERING] = {
-        name = Section.ENGINEERING,
+    [Constants.ENGINEERING] = {
+        name = Constants.ENGINEERING,
         board = 'e5a559',
         turnToken = '722590',
-        color = Color(189/255, 171/255, 85/255), -- '#BDAB55'
+        color = Color(189/255, 171/255, 85/255),
+        colorHex = '#BDAB55',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578334720/6C3EA3DABB6A7C4DBD829CAB4DDD960963657302/',
         drawerContent = { { guid = '051866', position = {48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '877a3b',
@@ -287,8 +286,10 @@ function Section.ready(name)
     Section.SECTIONS[name].ready:setText('Ready')
 
     local allReady = true
-    for _, section in pairs(Section.SECTIONS) do
-        if not section.isReady then allReady = false end
+    for name, section in pairs(Section.SECTIONS) do
+        if Options.sections_in_use[name] == true and not section.isReady then 
+            allReady = false
+        end
     end
 
     if allReady then
@@ -531,6 +532,10 @@ function Section.toggleBagsDisplay(displayBags)
     Section.HIDE_STORAGE_BAGS = not displayBags
 end
 
+function Section.getSection(name)
+    return Section.SECTIONS[name]
+end
+
 function Section.save()
     local flatData = {}
 
@@ -558,12 +563,9 @@ return {
     removeCrewmember = Section.removeCrewmember,
     readyAllCrew = Section.readyAllCrew,
     toggleBagsDisplay = Section.toggleBagsDisplay,
+    getSection = Section.getSection,
     save = Section.save,
     ----------------------------------
-    SECURITY = Section.SECURITY,
-    SCIENCE = Section.SCIENCE,
-    RECON = Section.RECON,
-    ENGINEERING = Section.ENGINEERING,
     RANK0 = Section.RANK0,
     RANK1 = Section.RANK1,
     RANK2 = Section.RANK2,
