@@ -10,9 +10,7 @@
 -- Don't forget to have the saveChest and the Logbook objects on the table to update their script properly
 
 -- Before release
--- TODO: Added scripted logbook, inspired by @TokMor, although I still recommend using the app as it's much better.
 -- TODO: Added planetopedia snap points
--- TODO: Can skip player turns if playing with a lower player count
 -- TODO: Changed the way the planetary scanner is working as it seems some users were having difficulties interacting with it
 -- TODO: Send to drawer button on crew members
 

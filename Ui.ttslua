@@ -376,7 +376,7 @@ function Ui:text(params)
 end
 
 function Ui:input(params)
-    assert(params.text ~= nil and 'string' == type(params.text))
+    assert(params.text == nil or 'string' == type(params.text))
     assert(params.fontSize == nil or 'number' == type(params.fontSize))
 
     local input = self:createElement('InputField', params)
@@ -392,6 +392,10 @@ function Ui:input(params)
     setmetatable(input, Ui)
     if params.onValueChanged then
         input:registerOnValueChanged(params.onValueChanged)
+    end
+
+    if params.onEndEdit then
+        input:registerOnEndEdit(params.onEndEdit)
     end
 
     return input
@@ -574,6 +578,19 @@ function Ui:registerOnValueChanged(onValueChanged)
         self.onValueChanged(player, isOn, id)
     end)
     self.attributes.onValueChanged = "Global/"..onValueChangedFunctionName
+end
+
+function Ui:registerOnEndEdit(onEndEdit)
+    assert(onEndEdit == nil or 'function' == type(onEndEdit))
+
+    -- Save the on click function
+    self.onEndEdit = onEndEdit or function() end
+
+    local onEndEditFunctionName = self.attributes.id.."_onEndEdit"
+    Global.setVar(onEndEditFunctionName, function(player, isOn, id)
+        self.onEndEdit(player, isOn, id)
+    end)
+    self.attributes.onEndEdit = "Global/"..onEndEditFunctionName
 end
 
 function Ui.getRoot()

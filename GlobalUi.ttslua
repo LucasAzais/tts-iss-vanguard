@@ -1,6 +1,7 @@
 local GlobalUi = {}
 GlobalUi.__index = GlobalUi
 
+local Constants = require('Constants')
 local Cycle = require('Cycle')
 local Options = require('Options')
 local Section = require('Section')
@@ -28,7 +29,7 @@ function GlobalUi.init(saved_data)
 
     -- Create the collapsible UI
     GlobalUi.menu_panel = Ui.getRoot():verticalLayout({
-        id = 'options-panel', height = 60, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '10 10 0 0', active = false
+        id = 'options-panel', height = 120, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '10 10 0 0', active = false
     })
     GlobalUi.menu_panel.attributes.color = '#05050559'
     GlobalUi.menu_panel.attributes.allowDragging = true
@@ -42,8 +43,43 @@ function GlobalUi.init(saved_data)
     GlobalUi.toggle_button.attributes.allowDragging = true
     GlobalUi.toggle_button.attributes.returnToOriginalPositionWhenReleased = false
 
+    -- Logbook search
+    local layout = GlobalUi.menu_panel:horizontalLayout({
+        id = 'logbook-search-layout', height = 30, spacing = 20,
+    })
+    layout.attributes.childForceExpandWidth = false
 
+    local text = layout:text({ 
+        id = 'logbook-search-text', text = 'Logbook', height = 30,
+    })
+    text.attributes.color = '#FFFFFF'
+    text.attributes.fontSize = 18
 
+    GlobalUi.logbook_search_input = layout:input({
+        id = 'logbook-search-input', height = 30, width = 200, onEndEdit = function(_, value) 
+            -- Find the logbook
+            local logbook = getObjectFromGUID(Constants.LOGBOOOK_GUID)
+            if not logbook then
+                broadcastToAll('Please take out the logbook before searching for a new entry.', Color.Red)
+                return
+            elseif value ~= nil and value ~= '' then
+                -- If found and there's a value, look for the page number and apply it
+                local pageNumber = Constants.LOGBOOK_MAP[value]
+                if pageNumber and tonumber(pageNumber) then
+                    logbook.Book.setPage(tonumber(pageNumber), true)
+                    GlobalUi.logbook_search_input:setText('')
+                else
+                    broadcastToAll('This logbook entry does not exist, you can try looking for it manually if you\'re certain.', Color.Red)
+                    return
+                end
+            end
+        end,
+    })
+    GlobalUi.logbook_search_input.attributes.fontSize = 24
+    GlobalUi.logbook_search_input.attributes.placeholder = 'Search for log #'
+    GlobalUi.logbook_search_input.attributes.characterValidation = 'Integer'
+
+    -- Used sections
     local text = GlobalUi.menu_panel:text({ 
         id = 'used-sections-text', text = 'Sections in Use', height = 30,
     })

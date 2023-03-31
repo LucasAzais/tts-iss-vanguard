@@ -1,14 +1,13 @@
 function onLoad(script_state)
     local savedData = JSON.decode(script_state) or {}
-
     logbook_content = savedData.logbook_content or {}
-    oldPageNumber = self.Book.getPage()
+    oldPageNumber = self.Book.getPage(true)
     -- No need to load the page, it's already showing
 end
 
 function onSave()
     -- Save the current page and then the content
-    savePage(self.Book.getPage())
+    savePage(self.Book.getPage(true))
 
     return JSON.encode({
         logbook_content = logbook_content,
@@ -20,7 +19,7 @@ function onPageChange()
     savePage(oldPageNumber)
 
     -- Load the new page
-    loadPage(self.Book.getPage())
+    loadPage(self.Book.getPage(true))
 end
 
 function savePage(pageNumber)
@@ -31,11 +30,15 @@ end
 
 function loadPage(pageNumber)
     -- Change the page if needed
-    if self.Book.getPage() ~= pageNumber then
-        self.Book.setPage(pageNumber)
+    if self.Book.getPage(true) ~= pageNumber then
+        self.Book.setPage(pageNumber, true)
     end
 
     -- Draw on the new page and update the page number
-    self.setVectorLines(logbook_content[self.Book.getPage()] or {})
-    oldPageNumber = self.Book.getPage()
+    if logbook_content[self.Book.getPage(true)] then
+        self.setVectorLines(logbook_content[self.Book.getPage(true)].drawings)
+    else
+        self.setVectorLines({})
+    end
+    oldPageNumber = self.Book.getPage(true)
 end
