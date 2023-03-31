@@ -426,7 +426,7 @@ function ShipBook.init(savedData)
 
     -- Various object events
     -- Starmap Scanner
-    EventManager.addHandler('onObjectCollisionEnter', ShipBook.setupScannerCard)
+    EventManager.addHandler('onObjectDrop', ShipBook.setupScannerCard)
 
     -- Resting Crew button
     local button = Ui.getRoot():button({
@@ -469,11 +469,6 @@ end
 
 function ShipBook.cleanupExistingChapter()
     EventManager.fireEvent(EventManager.ON_CHAPTER_CLEANUP)
-
-    -- TODO: Possibly move this into separate setup/cleanup functions?
-    if getObjectFromGUID(ShipBook.SCANNER) then
-        getObjectFromGUID(ShipBook.SCANNER).unregisterCollisions()
-    end
 
     Ui.getRoot():hide('resting-crew-button')
 
@@ -587,7 +582,6 @@ function ShipBook.setupBridge()
 end
 
 function ShipBook.setupStarmap()
-    getObjectFromGUID(ShipBook.SCANNER).registerCollisions()
 end
 
 function ShipBook.setupShipFacilities()
@@ -643,75 +637,94 @@ end
 -- pos2 = +1.92
 -- pos3 = +3.24
 -- pos4 = +5.19
-function ShipBook.setupScannerCard(registered_object, info)
-    if info.collision_object.hasTag('landingCard') and registered_object.getGUID() == ShipBook.SCANNER 
-        and not ShipBook.scanner_in_use then
-        
-        if DEBUG then
-            log('Setting up the scanner.')
-        end
+function ShipBook.setupScannerCard(_, object)
+    if object.hasTag('landingCard') and not ShipBook.scanner_in_use then
+        -- Get scanner and check coordinates
+        local scanner = getObjectFromGUID(ShipBook.SCANNER)
+        if math.abs(scanner.getPosition().x - object.getPosition().x) < 2.2
+                and math.abs(scanner.getPosition().z - object.getPosition().z) < 2.2 then
 
-        ShipBook.scanner_in_use = 1
-        local cardDeltas = {
-            0.63,
-            1.92,
-            3.24,
-            5.19
-        }
-
-        registered_object.setLock(true)
-        registered_object.setRotation({0.00, 180.00, 0.00})
-        info.collision_object.setLock(true)
-        info.collision_object.setRotationSmooth({0.00, 180.00, 0.00})
-
-        local position = Vector(registered_object.getPosition())
-        position.y = position.y - 0.01
-        position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
-        info.collision_object.setPositionSmooth(position)
-
-        registered_object.createButton({
-            click_function = 'nextScannerStep',
-            function_owner = self,
-            label          = 'Scan',
-            position       = {-1, 0.2, 1.5},
-            scale          = {1/registered_object.getScale().x, 1/registered_object.getScale().y, 1/registered_object.getScale().z},
-            width          = 900,
-            height         = 350,
-            font_size      = 280,
-        })
-
-        registered_object.createButton({
-            click_function = 'revealScanner',
-            function_owner = self,
-            label          = 'Reveal',
-            position       = {1, 0.2, 1.5},
-            scale          = {1/registered_object.getScale().x, 1/registered_object.getScale().y, 1/registered_object.getScale().z},
-            width          = 1000,
-            height         = 350,
-            font_size      = 280,
-        })
-
-        Global.setVar('nextScannerStep', function(obj)
-            if ShipBook.scanner_in_use < #cardDeltas then
-                ShipBook.scanner_in_use = ShipBook.scanner_in_use + 1
-
-                local position = Vector(registered_object.getPosition())
-                position.y = position.y - 0.02
-                position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
-                info.collision_object.setPositionSmooth(position)
+            if DEBUG then
+                log('Setting up the scanner.')
             end
-        end)
 
-        Global.setVar('revealScanner', function(obj)
-            registered_object.setRotation({0.00, 180.00, 180.00})
-            registered_object.setLock(false)
-            registered_object.clearButtons()
+            ShipBook.scanner_in_use = 1
+            local cardDeltas = {
+                0.63,
+                1.92,
+                3.24,
+                5.19
+            }
 
-            info.collision_object.setRotation({0.00, 180.00, 180.00})
-            info.collision_object.setLock(false)
-            ShipBook.scanner_in_use = nil
-            getObjectFromGUID(ShipBook.SCANNER).unregisterCollisions()
-        end)
+            scanner.setLock(true)
+            scanner.setRotation({0.00, 180.00, 0.00})
+            object.setLock(true)
+            object.setRotationSmooth({0.00, 180.00, 0.00})
+
+            local position = Vector(scanner.getPosition())
+            position.y = position.y - 0.01
+            position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
+            object.setPositionSmooth(position)
+
+            scanner.createButton({
+                click_function = 'nextScannerStep',
+                function_owner = self,
+                label          = 'Scan',
+                position       = {-1, 0.2, 1.5},
+                scale          = {1/scanner.getScale().x, 1/scanner.getScale().y, 1/scanner.getScale().z},
+                width          = 900,
+                height         = 350,
+                font_size      = 280,
+            })
+
+            scanner.createButton({
+                click_function = 'revealScanner',
+                function_owner = self,
+                label          = 'Reveal',
+                position       = {1, 0.2, 1.5},
+                scale          = {1/scanner.getScale().x, 1/scanner.getScale().y, 1/scanner.getScale().z},
+                width          = 1000,
+                height         = 350,
+                font_size      = 280,
+            })
+
+            Global.setVar('nextScannerStep', function(obj)
+                if ShipBook.scanner_in_use < #cardDeltas then
+                    ShipBook.scanner_in_use = ShipBook.scanner_in_use + 1
+
+                    local position = Vector(scanner.getPosition())
+                    position.y = position.y - 0.02
+                    position.z = position.z + cardDeltas[ShipBook.scanner_in_use]
+                    object.setPositionSmooth(position)
+                end
+            end)
+
+            Global.setVar('revealScanner', function(obj)
+                scanner.setRotation({0.00, 180.00, 180.00})
+                object.setRotation({0.00, 180.00, 180.00})
+                scanner.clearButtons()
+
+                scanner.createButton({
+                    click_function = 'freeScanner',
+                    function_owner = self,
+                    label          = 'Remove',
+                    position       = {0, 0.2, 1.5},
+                    scale          = {1/scanner.getScale().x, 1/scanner.getScale().y, 1/scanner.getScale().z},
+                    width          = 1000,
+                    height         = 350,
+                    font_size      = 280,
+                })
+
+                Global.setVar('freeScanner', function(obj)
+                    object.setRotation({0.00, 180.00, 0.00})
+                    object.setLock(false)
+                    scanner.setRotation({0.00, 180.00, 0.00})
+                    scanner.setLock(false)
+
+                    ShipBook.scanner_in_use = nil
+                end)
+            end)
+        end
     end
 end
 
