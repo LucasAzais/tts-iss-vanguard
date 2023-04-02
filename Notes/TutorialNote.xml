@@ -1,4 +1,6 @@
-<Panel width="1000" height="500" color='#0A0A0A' position="0 0 -30" rotation="0 0 180" scale="0.333 0.333 1">
-    <Text color="#F0F0F0" rectAlignment="UpperCenter" width="1000" height="400" fontSize="60">You can find the tutorial cards and the Rulebook in this section.</Text>
-    <Button rectAlignment="LowerCenter" offsetXY="0 60" width="300" height="100" fontSize="50" onClick="closeAndDestroy">Understood</Button>
+<Panel width="1000" height="750" color='#0A0A0A' position="0 0 -30" rotation="0 0 180" scale="0.333 0.333 1">
+    <Text color="#F0F0F0" rectAlignment="UpperCenter" width="1000" height="600" fontSize="60">You can find the tutorial cards, the Rulebook, Erratas and Logbook in this section of the table.
+    
+    Open the options menu in the top left of the screen and enter a specific entry number to have the logbook jump to the correct page.</Text>
+    <Button rectAlignment="LowerCenter" offsetXY="0 40" width="300" height="100" fontSize="50" onClick="closeAndDestroy">Understood</Button>
 </Panel>

@@ -29,7 +29,7 @@ function GlobalUi.init(saved_data)
 
     -- Create the collapsible UI
     GlobalUi.menu_panel = Ui.getRoot():verticalLayout({
-        id = 'options-panel', height = 120, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '10 10 0 0', active = false
+        id = 'options-panel', height = 120, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '5 5 5 5', active = false
     })
     GlobalUi.menu_panel.attributes.color = '#05050559'
     GlobalUi.menu_panel.attributes.allowDragging = true
@@ -75,7 +75,7 @@ function GlobalUi.init(saved_data)
             end
         end,
     })
-    GlobalUi.logbook_search_input.attributes.fontSize = 20
+    GlobalUi.logbook_search_input.attributes.fontSize = 18
     GlobalUi.logbook_search_input.attributes.placeholder = 'Search for log #'
     GlobalUi.logbook_search_input.attributes.characterValidation = 'Integer'
 
@@ -91,7 +91,7 @@ function GlobalUi.init(saved_data)
         id = 'used-sections-layout', height = 30, rectAlignment = 'UpperLeft',
     })
 
-    for section, isInUse in pairs(Options.sections_in_use) do
+    for _, section in ipairs(Constants.ORDERED_SECTIONS) do
         local toggle = layout:toggle({ id = section .. '-used-toggle', text = section, onValueChanged = function(_, isOn)
             Options.sections_in_use[section] = (isOn == 'True')
         end })
@@ -99,7 +99,7 @@ function GlobalUi.init(saved_data)
         toggle.attributes.colors = '#' .. Section.getSection(section).color:toHex(false) .. '|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
         toggle.attributes.fontSize = 15
         toggle.attributes.fontStyle = 'Bold'
-        toggle.attributes.isOn = true
+        toggle.attributes.isOn = Options.sections_in_use[section]
     end
 end
 
