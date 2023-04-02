@@ -23,6 +23,8 @@ function Cycle.init(savedData)
 end
 
 function Cycle.nextPhase()
+    local nextPhase = Cycle.current_phase
+    
     if Cycle.current_phase == Cycle.EXPLORATION then
         Exploration.endPhase()
 
@@ -37,7 +39,8 @@ function Cycle.nextPhase()
         Exploration.startPhase()
     end
 
-    return Cycle.getPhase()
+    -- Return the phase next time this is called
+    return nextPhase
 end
 
 function Cycle.getPhase()

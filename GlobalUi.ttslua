@@ -95,8 +95,8 @@ function GlobalUi.init(saved_data)
         local toggle = layout:toggle({ id = section .. '-used-toggle', text = section, onValueChanged = function(_, isOn)
             Options.sections_in_use[section] = (isOn == 'True')
         end })
-        toggle.attributes.textColor = Section.getSection(section).colorHex
-        toggle.attributes.colors = Section.getSection(section).colorHex .. '|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
+        toggle.attributes.textColor = '#' .. Section.getSection(section).color:toHex(false)
+        toggle.attributes.colors = '#' .. Section.getSection(section).color:toHex(false) .. '|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
         toggle.attributes.fontSize = 15
         toggle.attributes.fontStyle = 'Bold'
         toggle.attributes.isOn = true

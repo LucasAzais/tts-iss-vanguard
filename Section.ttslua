@@ -28,7 +28,7 @@ Section.SECTIONS = {
         board = '07b6c0',
         turnToken = 'ada930',
         color = Color(86/255, 161/255, 182/255), 
-        colorHex = '#56a1b6',
+        -- colorHex = '#56a1b6',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578335001/B7FC975A741BFD5EC3AD674BC341838AF5B73CA0/',
         drawerContent = { { guid = '1e73e3', position = {-48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = 'ab5f9e',
@@ -40,7 +40,7 @@ Section.SECTIONS = {
         board = 'cf71e9',
         turnToken = '604883',
         color = Color(107/255, 93/255, 144/255),
-        colorHex = '#6b5d90',
+        -- colorHex = '#6b5d90',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578375477/E6F1D75D8F8EEBA28BACD4242CC46CE3FA671CD6/',
         drawerContent = { { guid = '12be99', position = {-16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '9e2f6c',
@@ -52,7 +52,7 @@ Section.SECTIONS = {
         board = '12ef80',
         turnToken = '7ed433',
         color = Color(183/255, 102/255, 119/255),
-        colorHex = '#b76677',
+        -- colorHex = '#b76677',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/1893228491039060539/1D44279D594E334C1818F253AAF29A353D6A97CC/',
         drawerContent = { { guid = 'd84252', position = {16.14, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '72e714',
@@ -64,7 +64,7 @@ Section.SECTIONS = {
         board = 'e5a559',
         turnToken = '722590',
         color = Color(189/255, 171/255, 85/255),
-        colorHex = '#BDAB55',
+        -- colorHex = '#BDAB55',
         drawerImage = 'http://cloud-3.steamusercontent.com/ugc/2045235761578334720/6C3EA3DABB6A7C4DBD829CAB4DDD960963657302/',
         drawerContent = { { guid = '051866', position = {48.43, 1.56, -83.86}, rotation = {0.00, 180.00, 0.00}, lock = true} },
         drawerZone = '877a3b',
@@ -352,6 +352,24 @@ function Section.openDrawer(name, moveCamera)
             -- .attachInvisibleHider('hide', true)
         end
 
+        -- Add the "Gather crew" UI
+        local crewBoard = getObjectFromGUID(section.crewBoard)
+        if crewBoard then
+            if Ui.getRootPerObject(crewBoard) then
+                Ui.getRootPerObject(crewBoard):show(name .. '-gather-button')
+            else
+                local root = Ui.createRootOnObject(name .. '-drawer-root', getObjectFromGUID(section.crewBoard), 0)
+                local button = root:button({
+                    id = name .. '-gather-button', text = 'Gather crew', y = 130, width = 1000, height = 200,
+                    onClick = function() Section.gatherAllReadyCrew(name) end,
+                })
+                button.attributes.fontSize = 150
+                button.attributes.color = '#' .. section.color:toHex(false)
+
+                root:refresh()
+            end
+        end
+
         section.drawerOpen = true
     end
 
@@ -451,8 +469,8 @@ function Section.removeCrewmember(crew)
     return false
 end
 
--- TODO: Move all crew to the appropriate drawer (open/closed?)
-function Section.readyAllCrew()
+-- Move all crew from the rest box to their drawer
+function Section.restAllCrew()
     Section.openAllDrawers()
 
     Wait.frames(function()
@@ -522,6 +540,78 @@ function Section.readyAllCrew()
     end, 1)
 end
 
+function Section.gatherAllReadyCrew(sectionName)
+    if not Section.SECTIONS[sectionName] then return end
+    local missing = 0
+
+    -- The drawer should already be open so no need to open it
+
+    -- Scan all positions for free snap points
+    local allFreePositions = {{}, {}, {}} -- one array per rank
+    local crewBoard = getObjectFromGUID(Section.SECTIONS[sectionName].crewBoard)
+    local crewInPlace = {}
+
+    for _, snapPoint in ipairs(crewBoard.getSnapPoints()) do
+        local results = Physics.cast({
+            origin       = crewBoard.positionToWorld(snapPoint.position),
+            direction    = Vector(0, 1, 0),
+            type         = 1,
+            max_distance = 10,
+            debug        = false,
+        })
+
+        if not results or #results == 0 then
+            -- Free snap point
+            local rank = 0
+            if Utils.contains(snapPoint.tags, 'rank'..Section.RANK1) then
+                rank = 1
+            elseif Utils.contains(snapPoint.tags, 'rank'..Section.RANK2) then
+                rank = 2
+            elseif Utils.contains(snapPoint.tags, 'rank'..Section.RANK3) then
+                rank = 3
+            end
+
+            if rank > 0 then
+                table.insert(allFreePositions[rank], crewBoard.positionToWorld(snapPoint.position))
+            end
+        elseif results and #results > 0 then
+            -- TODO: Check the member is in the right place (same rank as the row)
+            local rank = 0
+            if Utils.contains(snapPoint.tags, 'rank'..Section.RANK1) and not results[1].hit_object.hasTag('rank'..Section.RANK1) then
+                rank = 1
+            elseif Utils.contains(snapPoint.tags, 'rank'..Section.RANK2) and not results[1].hit_object.hasTag('rank'..Section.RANK2) then
+                rank = 2
+            elseif Utils.contains(snapPoint.tags, 'rank'..Section.RANK3) and not results[1].hit_object.hasTag('rank'..Section.RANK3) then
+                rank = 3
+            else
+                -- Ignore this crewmember
+                crewInPlace[results[1].hit_object.getGUID()] = true
+            end
+
+            if rank > 0 then
+                table.insert(allFreePositions[rank], crewBoard.positionToWorld(snapPoint.position))
+            end
+        end
+    end
+
+    table.sort(allFreePositions[1], function(l1, l2) return l1.x < l2.x end)
+    table.sort(allFreePositions[2], function(l1, l2) return l1.x < l2.x end)
+    table.sort(allFreePositions[3], function(l1, l2) return l1.x < l2.x end)
+
+    for _, crewmember in pairs(Section.SECTIONS[sectionName].crew) do
+        local crew = getObjectFromGUID(crewmember.guid)
+        if crew and not crewInPlace[crewmember.guid] then
+            crew.setPosition(allFreePositions[crewmember.rank][1])
+
+            table.remove(allFreePositions[crewmember.rank], 1)
+        end
+    end
+
+    if missing > 0 then
+        broadcastToAll(missing .. ' crew member(s) could not be found.', Color.Red)
+    end
+end
+
 function Section.toggleBagsDisplay(displayBags)
     for name, section in pairs(Section.SECTIONS) do
         local drawerBag = getObjectFromGUID(Section.SECTIONS[section.name].drawerBag)
@@ -561,7 +651,7 @@ return {
     openDrawer = Section.openDrawer,
     closeDrawer = Section.closeDrawer,
     removeCrewmember = Section.removeCrewmember,
-    readyAllCrew = Section.readyAllCrew,
+    restAllCrew = Section.restAllCrew,
     toggleBagsDisplay = Section.toggleBagsDisplay,
     getSection = Section.getSection,
     save = Section.save,

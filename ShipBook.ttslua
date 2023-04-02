@@ -430,7 +430,7 @@ function ShipBook.init(savedData)
 
     -- Resting Crew button
     local button = Ui.getRoot():button({
-        id = 'resting-crew-button', onClick = function() Section.readyAllCrew() end, 
+        id = 'resting-crew-button', onClick = function() Section.restAllCrew() end, 
         height = 40, width = 90, text = 'Rest Crew', rectAlignment = 'UpperRight', x = -90, y = -690,
         active = false
     })
@@ -708,7 +708,8 @@ function ShipBook.setupScannerCard(_, object)
                     click_function = 'freeScanner',
                     function_owner = self,
                     label          = 'Remove',
-                    position       = {0, 0.2, 1.5},
+                    position       = {0, -0.2, 1.5},
+                    rotation       = {0, 0, 180},
                     scale          = {1/scanner.getScale().x, 1/scanner.getScale().y, 1/scanner.getScale().z},
                     width          = 1000,
                     height         = 350,
