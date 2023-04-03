@@ -224,8 +224,20 @@ function ShipBook.init(savedData)
     ShipBook.current_chapter = savedData.current_chapter or nil
     -- ShipBook.reopen_chapter -> this is only used in the current session. Could be easily saved here
 
-    -- Situations text display
+    -- Situations text display, recreate it if needed (after save chest reload mainly)
     ShipBook.situations_text = savedData.situations_text or nil
+    if ShipBook.situations_text and not getObjectFromGUID(ShipBook.situations_text) then
+        ShipBook.situations_text = spawnObject({
+            type = '3DText',
+            position = {-21.58, 2.00, 29.16},
+            rotation = {90, 0, 0},
+            sound = false,
+            callback_function = function(object)
+                object.TextTool.setValue('Current situations ===>')
+                object.TextTool.setFontSize(400)
+            end,
+        }).getGUID()
+    end
 
     -- Hide the chapter bags (visuals and sound)
     ShipBook.toggleBagsDisplay(not ShipBook.HIDE_STORAGE_BAGS)
@@ -763,7 +775,7 @@ function ShipBook.startPhase()
     })
 
     -- Display situations text
-    if not ShipBook.situations_text then
+    if not ShipBook.situations_text or not getObjectFromGUID(ShipBook.situations_text) then
         ShipBook.situations_text = spawnObject({
             type = '3DText',
             position = {-21.58, 2.00, 29.16},
@@ -785,16 +797,29 @@ end
 function ShipBook.endPhase()
     local shipbookBag = getObjectFromGUID(ShipBook.SHIPBOOK_BAG)
     
-    getObjectFromGUID(ShipBook.COMMAND_BAG).attachInvisibleHider('hide', true)
-    shipbookBag.putObject(getObjectFromGUID(ShipBook.COMMAND_BAG))
-    getObjectFromGUID(ShipBook.ENERGY_BAG).attachInvisibleHider('hide', true)
-    shipbookBag.putObject(getObjectFromGUID(ShipBook.ENERGY_BAG))
-    getObjectFromGUID(ShipBook.SUCCESS_BAG).attachInvisibleHider('hide', true)
-    shipbookBag.putObject(getObjectFromGUID(ShipBook.SUCCESS_BAG))
+    local commandBag = getObjectFromGUID(ShipBook.COMMAND_BAG)
+    if commandBag then
+        commandBag.attachInvisibleHider('hide', true)
+        shipbookBag.putObject(commandBag)
+    end
+
+    local energyBag = getObjectFromGUID(ShipBook.ENERGY_BAG)
+    if energyBag then
+        energyBag.attachInvisibleHider('hide', true)
+        shipbookBag.putObject(energyBag)
+    end
+
+    local successBag = getObjectFromGUID(ShipBook.SUCCESS_BAG)
+    if successBag then
+        successBag.attachInvisibleHider('hide', true)
+        shipbookBag.putObject(successBag)
+    end
 
     -- Clean up situations text
     if ShipBook.situations_text then
-        getObjectFromGUID(ShipBook.situations_text).destruct()
+        if getObjectFromGUID(ShipBook.situations_text) then
+            getObjectFromGUID(ShipBook.situations_text).destruct()
+        end
         ShipBook.situations_text = nil
     end
 

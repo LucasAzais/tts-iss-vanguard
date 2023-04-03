@@ -45,7 +45,7 @@ function GlobalUi.init(saved_data)
 
     -- Logbook search
     local layout = GlobalUi.menu_panel:horizontalLayout({
-        id = 'logbook-search-layout', height = 25, spacing = 20,
+        id = 'logbook-search-layout', height = 30, spacing = 20,
     })
     layout.attributes.childForceExpandWidth = false
 
@@ -53,7 +53,7 @@ function GlobalUi.init(saved_data)
         id = 'logbook-search-text', text = 'Logbook', height = 30,
     })
     text.attributes.color = '#FFFFFF'
-    text.attributes.fontSize = 18
+    text.attributes.fontSize = 20
 
     GlobalUi.logbook_search_input = layout:input({
         id = 'logbook-search-input', height = 30, width = 200, onEndEdit = function(_, value) 
@@ -75,7 +75,7 @@ function GlobalUi.init(saved_data)
             end
         end,
     })
-    GlobalUi.logbook_search_input.attributes.fontSize = 18
+    GlobalUi.logbook_search_input.attributes.fontSize = 20
     GlobalUi.logbook_search_input.attributes.placeholder = 'Search for log #'
     GlobalUi.logbook_search_input.attributes.characterValidation = 'Integer'
 

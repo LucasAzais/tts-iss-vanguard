@@ -10,7 +10,9 @@
 -- Don't forget to have the saveChest and the Logbook objects on the table to update their script properly
 
 -- Before release
--- TODO: Added planetopedia snap points
+-- TODO: Buggy/slow search after a few saves
+-- TODO: Save chest load -> disabled ship/exploration button
+-- TODO: Add savedObject to the starting planetopedia stuff 
 
 -- Maybe later stuff?
 -- TODO: Ship book page 24 -> add to the planetary exploration?
@@ -114,7 +116,8 @@ function loadState(params)
         Ui.getRoot():fullWipe()
 
         -- Reset handlers
-        EventManager.wipeHandlers('onObjectCollisionEnter')
+        EventManager.wipeHandlers('onObjectLeaveContainer')
+        EventManager.wipeHandlers('onObjectDrop')
         EventManager.wipeHandlers(EventManager.ON_CHAPTER_CLEANUP)
 
         -- Reload the game

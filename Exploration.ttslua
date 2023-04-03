@@ -285,9 +285,11 @@ function Exploration.init(savedData)
     
     -- Then update the book's script (will just overwrite it if already present)
     -- Doesn't need to be added on start/end phase since it stays on the book.
-    book.setLuaScript("")
-    book.setLuaScript("function onPageChange() Global.call('onPlanetopediaPageChange', {target = self}) end")
-    book.reload()
+    if book then
+        book.setLuaScript("")
+        book.setLuaScript("function onPageChange() Global.call('onPlanetopediaPageChange', {target = self}) end")
+        book.reload()
+    end
 end
 
 function Exploration.startPhase()
