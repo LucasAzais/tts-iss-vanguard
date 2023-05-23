@@ -29,7 +29,7 @@ function GlobalUi.init(saved_data)
 
     -- Create the collapsible UI
     GlobalUi.menu_panel = Ui.getRoot():verticalLayout({
-        id = 'options-panel', height = 120, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '5 5 5 5', active = false
+        id = 'options-panel', height = 150, width = 370, rectAlignment = 'UpperLeft', x = 120, y = -60, padding = '5 5 5 5', active = false
     })
     GlobalUi.menu_panel.attributes.color = '#05050559'
     GlobalUi.menu_panel.attributes.allowDragging = true
@@ -53,7 +53,7 @@ function GlobalUi.init(saved_data)
         id = 'logbook-search-text', text = 'Logbook', height = 30,
     })
     text.attributes.color = '#FFFFFF'
-    text.attributes.fontSize = 20
+    text.attributes.fontSize = 18
 
     GlobalUi.logbook_search_input = layout:input({
         id = 'logbook-search-input', height = 30, width = 200, onEndEdit = function(_, value) 
@@ -100,6 +100,31 @@ function GlobalUi.init(saved_data)
         toggle.attributes.fontSize = 15
         toggle.attributes.fontStyle = 'Bold'
         toggle.attributes.isOn = Options.sections_in_use[section]
+    end
+
+    -- Reset section crew
+    local text = GlobalUi.menu_panel:text({ 
+        id = 'reset-sections-text', text = 'Reset sections', height = 30,
+    })
+    text.attributes.color = '#FFFFFF'
+    text.attributes.fontSize = 18
+    text.attributes.tooltip = 'Used when you need to reset all section crew members (for any reason).'
+
+    local layout = GlobalUi.menu_panel:horizontalLayout({
+        id = 'reset-sections-layout', height = 35, rectAlignment = 'UpperLeft',
+    })
+
+    for _, section in ipairs(Constants.ORDERED_SECTIONS) do
+        local button = layout:button({ id = section .. '-reset-button', text = section, onClick = function()
+            Section.openDrawer(section)
+            Section.removeAllCrewmembers(section)
+            broadcastToAll('Reset all crew members for the ' .. section .. ' section.', Section.getSection(section).color)
+            broadcastToAll('You can add the correct members back now.', Section.getSection(section).color)
+        end })
+        button.attributes.textColor = '#000000'
+        button.attributes.colors = '#' .. Section.getSection(section).color:toHex(false) .. '|#FFFFFF|#C8C8C8|rgba(0.78,0.78,0.78,0.5)'
+        button.attributes.fontSize = 13
+        button.attributes.fontStyle = 'Bold'
     end
 end
 

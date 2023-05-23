@@ -469,6 +469,23 @@ function Section.removeCrewmember(crew)
     return false
 end
 
+function Section.removeAllCrewmembers(section)
+    if not Section.SECTIONS[section] then
+        return
+    end
+
+    for index, member in ipairs(Section.SECTIONS[section].crew) do
+        local crewMember = getObjectFromGUID(member.guid)
+
+        if crewMember then
+            crewMember.removeTag('rank'..member.rank)
+            crewMember.setDecals({})
+        end
+    end
+
+    Section.SECTIONS[section].crew = {}
+end
+
 -- Move all crew from the rest box to their drawer
 function Section.restAllCrew()
     Section.openAllDrawers()
@@ -651,6 +668,7 @@ return {
     openDrawer = Section.openDrawer,
     closeDrawer = Section.closeDrawer,
     removeCrewmember = Section.removeCrewmember,
+    removeAllCrewmembers = Section.removeAllCrewmembers,
     restAllCrew = Section.restAllCrew,
     toggleBagsDisplay = Section.toggleBagsDisplay,
     getSection = Section.getSection,
